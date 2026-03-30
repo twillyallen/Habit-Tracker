@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SkinSync">
+<title>SkinSync</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0e1117;
+  --surface: #161b22;
+  --surface-hover: #1c2230;
+  --border: rgba(255,255,255,0.06);
+  --text: #e6edf3;
+  --text-dim: #7d8590;
+  --accent: #58a6ff;
+  --accent-glow: rgba(88,166,255,0.15);
+  --green: #3fb950;
+  --green-glow: rgba(63,185,80,0.15);
+  --water: #79c0ff;
+  --water-glow: rgba(121,192,255,0.12);
+  --gold: #e3b341;
+  --orange: #f0883e;
+  --orange-glow: rgba(240,136,62,0.15);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', -apple-system, sans-serif;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+body {
+  padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
+  padding-top: max(env(safe-area-inset-top), 12px);
+}
+
+.header { text-align:center; padding:20px 0 6px; }
+.header h1 {
+  font-family:'Playfair Display',serif;
+  font-size:28px; font-weight:700; letter-spacing:-0.5px;
+  background:linear-gradient(135deg,var(--water),var(--accent),#bc8cff);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.header .date { font-size:13px; color:var(--text-dim); margin-top:4px; font-weight:500; }
+.header .day-tag {
+  display:inline-block; margin-top:6px;
+  font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1.5px;
+  padding:3px 12px; border-radius:20px;
+  background:var(--accent-glow); color:var(--accent);
+}
+
+.streak-bar { display:flex; justify-content:center; gap:20px; margin:14px 0 16px; }
+.streak-item { display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--text-dim); }
+.streak-item .num { font-size:18px; font-weight:700; color:var(--gold); }
+
+.daily-progress { text-align:center; padding:10px 0 18px; }
+.ring-container { position:relative; width:96px; height:96px; margin:0 auto 8px; }
+.ring-container svg { width:96px; height:96px; transform:rotate(-90deg); }
+.ring-bg { fill:none; stroke:rgba(255,255,255,0.06); stroke-width:6; }
+.ring-fill { fill:none; stroke:url(#ringGrad); stroke-width:6; stroke-linecap:round; transition:stroke-dashoffset 0.6s cubic-bezier(0.34,1.56,0.64,1); }
+.ring-pct { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:22px; font-weight:700; }
+.daily-msg { font-size:13px; color:var(--text-dim); font-weight:500; }
+.daily-msg.complete { color:var(--green); font-weight:600; }
+
+.section { background:var(--surface); border:1px solid var(--border); border-radius:16px; margin-bottom:14px; overflow:hidden; }
+.section-header { display:flex; align-items:center; justify-content:space-between; padding:14px 16px 10px; }
+.section-title { font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:1.2px; color:var(--text-dim); }
+.section-badge { font-size:12px; font-weight:600; padding:3px 10px; border-radius:20px; background:var(--accent-glow); color:var(--accent); }
+.section-badge.done { background:var(--green-glow); color:var(--green); }
+
+.checklist { padding:0 12px 12px; }
+.check-item { display:flex; align-items:center; gap:12px; padding:12px; border-radius:12px; cursor:pointer; transition:background 0.15s; -webkit-user-select:none; user-select:none; }
+.check-item:active { background:var(--surface-hover); }
+.checkbox { width:26px; height:26px; border-radius:8px; border:2px solid rgba(255,255,255,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.2s cubic-bezier(0.34,1.56,0.64,1); }
+.check-item.checked .checkbox { background:var(--green); border-color:var(--green); transform:scale(1.05); }
+.checkbox svg { width:14px; height:14px; opacity:0; transform:scale(0.5); transition:all 0.2s cubic-bezier(0.34,1.56,0.64,1); }
+.check-item.checked .checkbox svg { opacity:1; transform:scale(1); }
+.check-info { flex:1; }
+.check-label { font-size:15px; font-weight:500; transition:opacity 0.2s; }
+.check-item.checked .check-label { opacity:0.4; text-decoration:line-through; text-decoration-color:rgba(255,255,255,0.2); }
+.check-sub { font-size:12px; color:var(--text-dim); font-weight:400; margin-top:1px; }
+.check-item.checked .check-sub { opacity:0.35; }
+.check-icon { font-size:20px; flex-shrink:0; }
+
+.water-section { padding:0 16px 16px; }
+.water-visual { position:relative; height:110px; border-radius:14px; overflow:hidden; background:rgba(121,192,255,0.04); border:1px solid rgba(121,192,255,0.08); margin-bottom:14px; }
+.water-fill { position:absolute; bottom:0; left:0; right:0; background:linear-gradient(180deg,rgba(121,192,255,0.25),rgba(88,166,255,0.4)); transition:height 0.5s cubic-bezier(0.34,1.56,0.64,1); border-radius:0 0 13px 13px; }
+.water-fill::before { content:''; position:absolute; top:-4px; left:0; right:0; height:8px; background:linear-gradient(90deg,transparent,rgba(121,192,255,0.5) 25%,rgba(121,192,255,0.3) 50%,rgba(121,192,255,0.5) 75%,transparent); animation:wave 3s ease-in-out infinite; }
+@keyframes wave { 0%,100%{transform:translateX(-10px)} 50%{transform:translateX(10px)} }
+.water-label { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; z-index:2; }
+.water-oz { font-size:34px; font-weight:700; color:var(--water); }
+.water-goal { font-size:12px; color:var(--text-dim); font-weight:500; margin-top:1px; }
+
+.flask-row { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.flask-label { font-size:12px; color:var(--text-dim); font-weight:600; white-space:nowrap; }
+.flask-pips { display:flex; gap:6px; flex:1; }
+.flask-pip { flex:1; height:32px; border-radius:8px; border:1px solid rgba(121,192,255,0.15); background:rgba(121,192,255,0.04); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; color:var(--text-dim); transition:all 0.2s; }
+.flask-pip.filled { background:rgba(121,192,255,0.2); border-color:var(--water); color:var(--water); }
+
+.water-buttons { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; }
+.water-btn { background:var(--surface-hover); border:1px solid var(--border); border-radius:10px; color:var(--water); font-size:13px; font-weight:600; font-family:'DM Sans',sans-serif; padding:10px 2px; cursor:pointer; transition:all 0.15s; text-align:center; }
+.water-btn:active { transform:scale(0.95); background:var(--water-glow); }
+.water-btn.undo { color:var(--text-dim); font-size:12px; }
+
+.sleep-section { padding:0 16px 16px; }
+.sleep-row { display:flex; align-items:center; gap:12px; }
+.sleep-value { font-size:32px; font-weight:700; min-width:56px; text-align:center; }
+.sleep-value .unit { font-size:14px; font-weight:500; color:var(--text-dim); }
+.sleep-buttons { display:flex; gap:6px; flex:1; }
+.sleep-btn { flex:1; height:42px; border-radius:10px; border:1px solid var(--border); background:var(--surface-hover); color:var(--text-dim); font-size:13px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; transition:all 0.15s; }
+.sleep-btn:active { transform:scale(0.95); }
+.sleep-btn.active { background:var(--orange-glow); border-color:var(--orange); color:var(--orange); }
+.sleep-msg { text-align:center; font-size:12px; color:var(--text-dim); margin-top:10px; font-weight:500; }
+
+.reset-row { text-align:center; padding-bottom:28px; }
+.reset-btn { background:none; border:none; color:var(--text-dim); font-size:12px; font-family:'DM Sans',sans-serif; cursor:pointer; padding:8px 16px; opacity:0.5; }
+
+@keyframes popIn { 0%{transform:translate(-50%,-50%) scale(0.5);opacity:0} 60%{transform:translate(-50%,-50%) scale(1.15)} 100%{transform:translate(-50%,-50%) scale(1);opacity:1} }
+.celebration { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.5); background:var(--surface); border:1px solid var(--green); border-radius:20px; padding:32px 40px; text-align:center; z-index:100; animation:popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards; box-shadow:0 0 60px rgba(63,185,80,0.2); }
+.celebration .emoji { font-size:40px; margin-bottom:8px; }
+.celebration .title { font-size:20px; font-weight:700; margin-bottom:4px; }
+.celebration .sub { font-size:13px; color:var(--text-dim); }
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:99; opacity:0; animation:fadeIn 0.2s forwards; }
+@keyframes fadeIn { to{opacity:1} }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>SkinSync</h1>
+  <div class="date" id="dateLabel"></div>
+  <div class="day-tag" id="dayTag"></div>
+</div>
+
+<div class="streak-bar">
+  <div class="streak-item">🔥 <span class="num" id="streakCount">0</span> day streak</div>
+  <div class="streak-item">🏆 <span class="num" id="bestStreak">0</span> best</div>
+</div>
+
+<div class="daily-progress">
+  <div class="ring-container">
+    <svg viewBox="0 0 100 100">
+      <defs><linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#58a6ff"/><stop offset="100%" stop-color="#3fb950"/></linearGradient></defs>
+      <circle class="ring-bg" cx="50" cy="50" r="42"/>
+      <circle class="ring-fill" cx="50" cy="50" r="42" stroke-dasharray="263.9" stroke-dashoffset="263.9" id="ringFill"/>
+    </svg>
+    <div class="ring-pct" id="ringPct">0%</div>
+  </div>
+  <div class="daily-msg" id="dailyMsg">Let's get after it 💪</div>
+</div>
+
+<div class="section">
+  <div class="section-header"><span class="section-title">☀️ Morning</span><span class="section-badge" id="morningBadge">0/0</span></div>
+  <div class="checklist" id="morningList"></div>
+</div>
+
+<div class="section">
+  <div class="section-header"><span class="section-title">🌙 Evening</span><span class="section-badge" id="eveningBadge">0/3</span></div>
+  <div class="checklist" id="eveningList"></div>
+</div>
+
+<div class="section">
+  <div class="section-header"><span class="section-title">💧 Hydration</span><span class="section-badge" id="waterBadge">0 / 130 oz</span></div>
+  <div class="water-section">
+    <div class="water-visual">
+      <div class="water-fill" id="waterFill" style="height:0%"></div>
+      <div class="water-label">
+        <div class="water-oz" id="waterOz">0</div>
+        <div class="water-goal">of 130 oz</div>
+      </div>
+    </div>
+    <div class="flask-row">
+      <span class="flask-label">🫗 Flasks</span>
+      <div class="flask-pips" id="flaskPips"></div>
+    </div>
+    <div class="water-buttons">
+      <button class="water-btn" onclick="addWater(10)">+10</button>
+      <button class="water-btn" onclick="addWater(20)">+20</button>
+      <button class="water-btn" onclick="addWater(30)">+30</button>
+      <button class="water-btn" onclick="addWater(40)">+40</button>
+      <button class="water-btn undo" onclick="addWater(-40)">↩</button>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header"><span class="section-title">😴 Sleep</span><span class="section-badge" id="sleepBadge">Not logged</span></div>
+  <div class="sleep-section">
+    <div class="sleep-row">
+      <div class="sleep-value" id="sleepDisplay">—<span class="unit"> hrs</span></div>
+      <div class="sleep-buttons" id="sleepButtons"></div>
+    </div>
+    <div class="sleep-msg" id="sleepMsg">How'd you sleep last night?</div>
+  </div>
+</div>
+
+<div class="reset-row"><button class="reset-btn" onclick="resetDay()">Reset today</button></div>
+
+<script>
+const WATER_GOAL = 130;
+const FLASK = 40;
+const NUM_FLASKS = Math.ceil(WATER_GOAL / FLASK);
+
+function getToday() { return new Date().toISOString().slice(0,10); }
+function getDow() { return new Date().getDay(); }
+function getDayName() { return ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][getDow()]; }
+
+function getMorning() {
+  const d = getDow();
+  const items = [];
+  if ([1,3,5].includes(d)) items.push({id:'am_panoxyl',label:'PanOxyl Foaming Wash',sub:'Benzoyl peroxide — M/W/F',icon:'🧴'});
+  items.push({id:'am_moist',label:'Moisturizer',sub:'Neutrogena Hydro Boost',icon:'💧'});
+  items.push({id:'am_spf',label:'Sunscreen',sub:'SPF 30+',icon:'☀️'});
+  return items;
+}
+
+function getEvening() {
+  const d = getDow();
+  const items = [{id:'pm_cleanser',label:'Gentle Cleanser',sub:'Non-foaming / hydrating',icon:'🧴'}];
+  if (d === 0) {
+    items.push({id:'pm_paulas',label:"Paula's Choice Liquid Exfoliant",sub:'Sunday night exfoliation',icon:'✨'});
+  } else {
+    items.push({id:'pm_differin',label:'Differin Adapalene Gel',sub:'Retinoid — Mon–Sat',icon:'💊'});
+  }
+  items.push({id:'pm_moist',label:'Moisturizer',sub:'Neutrogena Hydro Boost',icon:'💧'});
+  return items;
+}
+
+// State
+function streakInfo() { try { return JSON.parse(localStorage.getItem('ss_streak'))||{s:0,b:0}; } catch { return {s:0,b:0}; } }
+
+function calcProg(st) {
+  const all = [...getMorning(),...getEvening()];
+  let done = all.filter(i=>st.checks[i.id]).length;
+  const cp = done/all.length, wp = Math.min(st.water/WATER_GOAL,1), sp = st.sleep!==null?1:0;
+  return Math.round((cp*0.5+wp*0.35+sp*0.15)*100);
+}
+
+function finalize(prev) {
+  if(!prev)return;
+  const ok = calcProg(prev)>=100;
+  let si = streakInfo();
+  if(ok) si.s++; else si.s=0;
+  if(si.s>si.b) si.b=si.s;
+  localStorage.setItem('ss_streak',JSON.stringify(si));
+}
+
+function load() {
+  try {
+    const r=localStorage.getItem('ss2');
+    if(!r)return null;
+    const s=JSON.parse(r);
+    if(s.date!==getToday()){finalize(s);return null;}
+    return s;
+  } catch{return null;}
+}
+
+function defaults() {
+  const si=streakInfo();
+  return {date:getToday(),checks:{},water:0,sleep:null,streak:si.s,best:si.b};
+}
+
+function save(s){localStorage.setItem('ss2',JSON.stringify(s));}
+
+let S = load()||defaults();
+let celeb = false;
+
+function addWater(oz){S.water=Math.max(0,S.water+oz);save(S);render();}
+
+function buildList(id,items){
+  const el=document.getElementById(id);el.innerHTML='';
+  items.forEach(item=>{
+    const d=document.createElement('div');
+    d.className='check-item'+(S.checks[item.id]?' checked':'');
+    d.innerHTML=`<div class="checkbox"><svg viewBox="0 0 14 14" fill="none"><path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="check-info"><div class="check-label">${item.label}</div><div class="check-sub">${item.sub}</div></div><span class="check-icon">${item.icon}</span>`;
+    d.addEventListener('click',()=>{S.checks[item.id]=!S.checks[item.id];save(S);render();});
+    el.appendChild(d);
+  });
+}
+
+function renderFlasks(){
+  const el=document.getElementById('flaskPips');el.innerHTML='';
+  const full=Math.floor(S.water/FLASK), part=S.water%FLASK;
+  for(let i=0;i<NUM_FLASKS;i++){
+    const p=document.createElement('div');p.className='flask-pip';
+    if(i<full){p.classList.add('filled');p.textContent='40';}
+    else if(i===full&&part>0){
+      p.style.background=`linear-gradient(to top,rgba(121,192,255,0.2) ${(part/FLASK)*100}%,rgba(121,192,255,0.04) ${(part/FLASK)*100}%)`;
+      p.style.borderColor='rgba(121,192,255,0.3)';p.style.color='var(--water)';p.textContent=part;
+    }
+    el.appendChild(p);
+  }
+}
+
+function renderSleep(){
+  const c=document.getElementById('sleepButtons');c.innerHTML='';
+  [4,5,6,7,8].forEach(h=>{
+    const b=document.createElement('button');
+    b.className='sleep-btn'+(S.sleep===h?' active':'');
+    b.textContent=h+'h';
+    b.addEventListener('click',()=>{S.sleep=S.sleep===h?null:h;save(S);render();});
+    c.appendChild(b);
+  });
+  const disp=document.getElementById('sleepDisplay');
+  const badge=document.getElementById('sleepBadge');
+  const msg=document.getElementById('sleepMsg');
+  if(S.sleep!==null){
+    disp.innerHTML=S.sleep+'<span class="unit"> hrs</span>';
+    badge.textContent=S.sleep+' hrs';
+    badge.className='section-badge'+(S.sleep>=7?' done':'');
+    msg.textContent=S.sleep>=8?'King rest 👑':S.sleep>=7?'Solid recovery night':S.sleep>=6?'Could be better — aim for 7+':'Rough night — prioritize rest tonight';
+  } else {
+    disp.innerHTML='—<span class="unit"> hrs</span>';
+    badge.textContent='Not logged';badge.className='section-badge';
+    msg.textContent="How'd you sleep last night?";
+  }
+}
+
+function render(){
+  // Date
+  const d=new Date();
+  document.getElementById('dateLabel').textContent=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  const dow=getDow();
+  const tag=dow===0?'Exfoliant Night':[1,3,5].includes(dow)?'PanOxyl Day':'Gentle Day';
+  document.getElementById('dayTag').textContent=tag;
+
+  const am=getMorning(),pm=getEvening();
+  buildList('morningList',am); buildList('eveningList',pm);
+
+  const mc=am.filter(i=>S.checks[i.id]).length, pc=pm.filter(i=>S.checks[i.id]).length;
+  const mb=document.getElementById('morningBadge'); mb.textContent=`${mc} / ${am.length}`; mb.className='section-badge'+(mc===am.length?' done':'');
+  const eb=document.getElementById('eveningBadge'); eb.textContent=`${pc} / ${pm.length}`; eb.className='section-badge'+(pc===pm.length?' done':'');
+
+  // Water
+  const wp=Math.min((S.water/WATER_GOAL)*100,100);
+  document.getElementById('waterFill').style.height=wp+'%';
+  document.getElementById('waterOz').textContent=S.water;
+  const wb=document.getElementById('waterBadge');wb.textContent=`${S.water} / ${WATER_GOAL} oz`;wb.className='section-badge'+(S.water>=WATER_GOAL?' done':'');
+  renderFlasks(); renderSleep();
+
+  // Ring
+  const pct=calcProg(S);
+  const circ=2*Math.PI*42;
+  document.getElementById('ringFill').style.strokeDashoffset=circ-(pct/100)*circ;
+  document.getElementById('ringPct').textContent=pct+'%';
+  document.getElementById('streakCount').textContent=S.streak;
+  document.getElementById('bestStreak').textContent=S.best;
+
+  const m=document.getElementById('dailyMsg');
+  if(pct>=100){m.textContent='🎉 Perfect day — skin is gonna thank you!';m.className='daily-msg complete';if(!celeb){celeb=true;showCeleb();}}
+  else if(pct>=75){m.textContent='Almost there — finish strong 💪';m.className='daily-msg';}
+  else if(pct>=40){m.textContent='Good progress — keep it going';m.className='daily-msg';}
+  else{m.textContent="Let's get after it 💪";m.className='daily-msg';}
+}
+
+function showCeleb(){
+  const o=document.createElement('div');o.className='overlay';
+  const p=document.createElement('div');p.className='celebration';
+  p.innerHTML=`<div class="emoji">✅</div><div class="title">Day Complete!</div><div class="sub">Streak: ${S.streak+1} day${S.streak?'s':''}</div>`;
+  document.body.appendChild(o);document.body.appendChild(p);
+  const x=()=>{o.remove();p.remove();};
+  o.addEventListener('click',x);p.addEventListener('click',x);setTimeout(x,3000);
+}
+
+function resetDay(){if(confirm('Reset all progress for today?')){S=defaults();celeb=false;save(S);render();}}
+
+render();
+</script>
+</body>
+</html>
