@@ -125,6 +125,37 @@ body {
 .reset-row { text-align:center; padding-bottom:28px; }
 .reset-btn { background:none; border:none; color:var(--text-dim); font-size:12px; font-family:'DM Sans',sans-serif; cursor:pointer; padding:8px 16px; opacity:0.5; }
 
+.greeting-banner {
+  text-align:center; padding:16px 20px; margin-bottom:14px;
+  background:var(--surface); border:1px solid var(--border); border-radius:16px;
+  animation: fadeSlideIn 0.5s ease forwards;
+}
+.greeting-banner .greet-text {
+  font-family:'Playfair Display',serif;
+  font-size:20px; font-weight:700; color:var(--text);
+}
+.greeting-banner .greet-sub {
+  font-size:13px; color:var(--text-dim); margin-top:4px; font-weight:500;
+}
+.greeting-banner .dismiss {
+  background:none; border:none; color:var(--text-dim); font-size:11px;
+  font-family:'DM Sans',sans-serif; cursor:pointer; margin-top:8px; opacity:0.5;
+}
+@keyframes fadeSlideIn { 0%{opacity:0;transform:translateY(-8px)} 100%{opacity:1;transform:translateY(0)} }
+
+.night-done-banner {
+  text-align:center; padding:16px 20px; margin-bottom:14px;
+  background:var(--surface); border:1px solid rgba(88,166,255,0.2); border-radius:16px;
+  animation: fadeSlideIn 0.5s ease forwards;
+}
+.night-done-banner .night-text {
+  font-family:'Playfair Display',serif;
+  font-size:18px; font-weight:700; color:var(--accent);
+}
+.night-done-banner .night-sub {
+  font-size:13px; color:var(--text-dim); margin-top:4px; font-weight:500;
+}
+
 @keyframes popIn { 0%{transform:translate(-50%,-50%) scale(0.5);opacity:0} 60%{transform:translate(-50%,-50%) scale(1.15)} 100%{transform:translate(-50%,-50%) scale(1);opacity:1} }
 .celebration { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.5); background:var(--surface); border:1px solid var(--green); border-radius:20px; padding:32px 40px; text-align:center; z-index:100; animation:popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards; box-shadow:0 0 60px rgba(63,185,80,0.2); }
 .celebration .emoji { font-size:40px; margin-bottom:8px; }
@@ -145,6 +176,9 @@ body {
 <div class="streak-bar">
   <div class="streak-item">🔥 <span class="num" id="streakCount">0</span> day streak</div>
 </div>
+
+<div id="greetingBanner"></div>
+<div id="nightDoneBanner"></div>
 
 <div class="daily-progress">
   <div class="ring-container">
@@ -277,6 +311,42 @@ function save(s){localStorage.setItem('ss2',JSON.stringify(s));}
 
 let S = load()||defaults();
 let celeb = false;
+let nightBannerShown = false;
+
+// Morning greeting — show once per day, before 11am, on first open
+function renderGreeting() {
+  const el = document.getElementById('greetingBanner');
+  const hour = new Date().getHours();
+  const key = 'ss_greeted_' + getToday();
+  if (hour < 11 && !localStorage.getItem(key)) {
+    localStorage.setItem(key, '1');
+    el.innerHTML = `<div class="greeting-banner">
+      <div class="greet-text">Good morning, Thomas! ☀️</div>
+      <div class="greet-sub">Let's have a great day</div>
+      <button class="dismiss" onclick="this.parentElement.remove()">dismiss</button>
+    </div>`;
+  } else {
+    el.innerHTML = '';
+  }
+}
+
+// Night routine done banner — after 6pm, when all evening checks are done
+function renderNightBanner() {
+  const el = document.getElementById('nightDoneBanner');
+  const hour = new Date().getHours();
+  const pm = getEvening();
+  const allDone = pm.every(i => S.checks[i.id]);
+  if (hour >= 18 && allDone && !nightBannerShown) {
+    nightBannerShown = true;
+    el.innerHTML = `<div class="night-done-banner">
+      <div class="night-text">Well done! Sleep well 🌙</div>
+      <div class="night-sub">Night routine complete — your skin thanks you</div>
+    </div>`;
+  } else if (!allDone) {
+    nightBannerShown = false;
+    el.innerHTML = '';
+  }
+}
 
 function addWater(oz){S.water=Math.max(0,S.water+oz);save(S);render();}
 
@@ -330,6 +400,7 @@ function renderSleep(){
 }
 
 function render(){
+  renderGreeting();
   // Date
   const d=new Date();
   document.getElementById('dateLabel').textContent=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
@@ -343,6 +414,7 @@ function render(){
   const mc=am.filter(i=>S.checks[i.id]).length, pc=pm.filter(i=>S.checks[i.id]).length;
   const mb=document.getElementById('morningBadge'); mb.textContent=`${mc} / ${am.length}`; mb.className='section-badge'+(mc===am.length?' done':'');
   const eb=document.getElementById('eveningBadge'); eb.textContent=`${pc} / ${pm.length}`; eb.className='section-badge'+(pc===pm.length?' done':'');
+  renderNightBanner();
 
   // Water
   const wp=Math.min((S.water/WATER_GOAL)*100,100);
