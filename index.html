@@ -144,7 +144,6 @@ body {
 
 <div class="streak-bar">
   <div class="streak-item">🔥 <span class="num" id="streakCount">0</span> day streak</div>
-  <div class="streak-item">🏆 <span class="num" id="bestStreak">0</span> best</div>
 </div>
 
 <div class="daily-progress">
@@ -160,17 +159,23 @@ body {
 </div>
 
 <div class="section">
-  <div class="section-header"><span class="section-title">☀️ Morning</span><span class="section-badge" id="morningBadge">0/0</span></div>
+  <div class="section-header"><span class="section-title">Sleep Time</span><span class="section-badge" id="sleepBadge">Not logged</span></div>
+  <div class="sleep-section">
+    <div class="sleep-row">
+      <div class="sleep-value" id="sleepDisplay">—<span class="unit"> hrs</span></div>
+      <div class="sleep-buttons" id="sleepButtons"></div>
+    </div>
+    <div class="sleep-msg" id="sleepMsg">How'd you sleep last night?</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header"><span class="section-title">Morning Routine</span><span class="section-badge" id="morningBadge">0/0</span></div>
   <div class="checklist" id="morningList"></div>
 </div>
 
 <div class="section">
-  <div class="section-header"><span class="section-title">🌙 Evening</span><span class="section-badge" id="eveningBadge">0/3</span></div>
-  <div class="checklist" id="eveningList"></div>
-</div>
-
-<div class="section">
-  <div class="section-header"><span class="section-title">💧 Hydration</span><span class="section-badge" id="waterBadge">0 / 130 oz</span></div>
+  <div class="section-header"><span class="section-title">Hydration</span><span class="section-badge" id="waterBadge">0 / 130 oz</span></div>
   <div class="water-section">
     <div class="water-visual">
       <div class="water-fill" id="waterFill" style="height:0%"></div>
@@ -180,7 +185,7 @@ body {
       </div>
     </div>
     <div class="flask-row">
-      <span class="flask-label">🫗 Flasks</span>
+      <span class="flask-label">Hydro Flasks</span>
       <div class="flask-pips" id="flaskPips"></div>
     </div>
     <div class="water-buttons">
@@ -194,15 +199,13 @@ body {
 </div>
 
 <div class="section">
-  <div class="section-header"><span class="section-title">😴 Sleep</span><span class="section-badge" id="sleepBadge">Not logged</span></div>
-  <div class="sleep-section">
-    <div class="sleep-row">
-      <div class="sleep-value" id="sleepDisplay">—<span class="unit"> hrs</span></div>
-      <div class="sleep-buttons" id="sleepButtons"></div>
-    </div>
-    <div class="sleep-msg" id="sleepMsg">How'd you sleep last night?</div>
-  </div>
+  <div class="section-header"><span class="section-title">Night Routine</span><span class="section-badge" id="eveningBadge">0/3</span></div>
+  <div class="checklist" id="eveningList"></div>
 </div>
+
+
+
+
 
 <div class="reset-row"><button class="reset-btn" onclick="resetDay()">Reset today</button></div>
 
@@ -267,7 +270,7 @@ function load() {
 
 function defaults() {
   const si=streakInfo();
-  return {date:getToday(),checks:{},water:0,sleep:null,streak:si.s,best:si.b};
+  return {date:getToday(),checks:{},water:0,sleep:null,streak:si.s};
 }
 
 function save(s){localStorage.setItem('ss2',JSON.stringify(s));}
@@ -354,7 +357,7 @@ function render(){
   document.getElementById('ringFill').style.strokeDashoffset=circ-(pct/100)*circ;
   document.getElementById('ringPct').textContent=pct+'%';
   document.getElementById('streakCount').textContent=S.streak;
-  document.getElementById('bestStreak').textContent=S.best;
+
 
   const m=document.getElementById('dailyMsg');
   if(pct>=100){m.textContent='🎉 Perfect day — skin is gonna thank you!';m.className='daily-msg complete';if(!celeb){celeb=true;showCeleb();}}
