@@ -255,21 +255,21 @@ function getDayName() { return ['Sunday','Monday','Tuesday','Wednesday','Thursda
 function getMorning() {
   const d = getDow();
   const items = [];
-  if ([1,3,5].includes(d)) items.push({id:'am_panoxyl',label:'PanOxyl Foaming Wash',sub:'Benzoyl peroxide — M/W/F',icon:'🧴'});
-  items.push({id:'am_moist',label:'Moisturizer',sub:'Neutrogena Hydro Boost',icon:'💧'});
-  items.push({id:'am_spf',label:'Sunscreen',sub:'SPF 30+',icon:'☀️'});
+  if ([1,3,5].includes(d)) items.push({id:'am_panoxyl',label:'PanOxyl Foaming Wash',sub:'Benzoyl peroxide — M/W/F',icon:''});
+  items.push({id:'am_moist',label:'Moisturizer',sub:'CeraVe Moisturizing Cream',icon:''});
+  items.push({id:'am_spf',label:'Sunscreen',sub:'SPF 30+',icon:''});
   return items;
 }
 
 function getEvening() {
   const d = getDow();
-  const items = [{id:'pm_cleanser',label:'Gentle Cleanser',sub:'Non-foaming / hydrating',icon:'🧴'}];
+  const items = [{id:'pm_cleanser',label:'Neutragena Gentle Cleanser',sub:'Foaming Formula',icon:''}];
   if (d === 0) {
-    items.push({id:'pm_paulas',label:"Paula's Choice Liquid Exfoliant",sub:'Sunday night exfoliation',icon:'✨'});
+    items.push({id:'pm_paulas',label:"Paula's Choice Liquid Exfoliant",sub:'Sunday night exfoliation',icon:''});
   } else {
-    items.push({id:'pm_differin',label:'Differin Adapalene Gel',sub:'Retinoid — Mon–Sat',icon:'💊'});
+    items.push({id:'pm_differin',label:'Differin Adapalene Gel',sub:'Retinoid — Mon–Sat',icon:''});
   }
-  items.push({id:'pm_moist',label:'Moisturizer',sub:'Neutrogena Hydro Boost',icon:'💧'});
+  items.push({id:'pm_moist',label:'Moisturizer',sub:'CeraVe Moisturizing Cream',icon:''});
   return items;
 }
 
@@ -391,7 +391,7 @@ function renderSleep(){
     disp.innerHTML=S.sleep+'<span class="unit"> hrs</span>';
     badge.textContent=S.sleep+' hrs';
     badge.className='section-badge'+(S.sleep>=7?' done':'');
-    msg.textContent=S.sleep>=8?'King rest 👑':S.sleep>=7?'Solid recovery night':S.sleep>=6?'Could be better — aim for 7+':'Rough night — prioritize rest tonight';
+    msg.textContent=S.sleep>=8?'Hell Yeah':S.sleep>=7?'Solid Sleep!':S.sleep>=6?'Could be better...':'Yikes...';
   } else {
     disp.innerHTML='—<span class="unit"> hrs</span>';
     badge.textContent='Not logged';badge.className='section-badge';
@@ -432,10 +432,10 @@ function render(){
 
 
   const m=document.getElementById('dailyMsg');
-  if(pct>=100){m.textContent='🎉 Perfect day — skin is gonna thank you!';m.className='daily-msg complete';if(!celeb){celeb=true;showCeleb();}}
-  else if(pct>=75){m.textContent='Almost there — finish strong 💪';m.className='daily-msg';}
-  else if(pct>=40){m.textContent='Good progress — keep it going';m.className='daily-msg';}
-  else{m.textContent="Let's get after it 💪";m.className='daily-msg';}
+  if(pct>=100){m.textContent='Perfect day. Skin is gonna thank you!';m.className='daily-msg complete';if(!celeb){celeb=true;showCeleb();}}
+  else if(pct>=75){m.textContent='Almost there. Finish strong';m.className='daily-msg';}
+  else if(pct>=40){m.textContent='Good progress. Keep it going';m.className='daily-msg';}
+  else{m.textContent="Stay with it!";m.className='daily-msg';}
 }
 
 function showCeleb(){
