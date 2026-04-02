@@ -654,33 +654,72 @@ function setWorkout(val) {
 }
 
 // ============ SLIDER LOGIC ============
+function initSliderTrack(track, onUpdate) {
+  // Mouse — works fine, no scroll conflict
+  let mouseDrag = false;
+  track.addEventListener('mousedown', (e) => { mouseDrag = true; onUpdate(e); });
+  document.addEventListener('mousemove', (e) => { if (mouseDrag) onUpdate(e); });
+  document.addEventListener('mouseup', () => { mouseDrag = false; });
+
+  // Touch — only activate if user drags horizontally, not vertically (scrolling)
+  let touchState = null; // { startX, startY, locked: null|'slider'|'scroll' }
+
+  track.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    touchState = { startX: t.clientX, startY: t.clientY, locked: null };
+  }, { passive: true });
+
+  track.addEventListener('touchmove', (e) => {
+    if (!touchState) return;
+    const t = e.touches[0];
+    const dx = Math.abs(t.clientX - touchState.startX);
+    const dy = Math.abs(t.clientY - touchState.startY);
+
+    // Haven't decided direction yet — need at least 8px of movement
+    if (!touchState.locked) {
+      if (dx < 8 && dy < 8) return; // too small to tell
+      touchState.locked = dx > dy ? 'slider' : 'scroll';
+    }
+
+    if (touchState.locked === 'slider') {
+      e.preventDefault(); // stop page scroll
+      onUpdate(e);
+    }
+    // if 'scroll', do nothing — let the page scroll naturally
+  }, { passive: false }); // passive:false so we CAN preventDefault
+
+  track.addEventListener('touchend', () => {
+    // If user tapped without dragging, treat as a tap-to-set
+    if (touchState && touchState.locked === null) {
+      // Small movement = tap, set value at tap point
+      // We'll fire it on the next event cycle
+    }
+    touchState = null;
+  });
+
+  // Also handle tap (touchstart + touchend with no significant move)
+  track.addEventListener('click', (e) => { onUpdate(e); });
+}
+
 function initSliders() {
   const tracks = document.querySelectorAll('.slider-track[data-key]');
   tracks.forEach(track => {
     const key = track.dataset.key;
-    const setVal = (e) => {
+    initSliderTrack(track, (e) => {
       if (!isViewingToday()) return;
       const rect = track.getBoundingClientRect();
       const x = (e.touches ? e.touches[0] : e).clientX;
       let pct = Math.max(0, Math.min(1, (x - rect.left) / rect.width));
-      const val = Math.round(pct * 10);
-      S[key] = val;
+      S[key] = Math.round(pct * 10);
       saveState(S);
       render();
-    };
-    let dragging = false;
-    track.addEventListener('mousedown', (e) => { dragging = true; setVal(e); });
-    track.addEventListener('touchstart', (e) => { dragging = true; setVal(e); }, {passive:true});
-    document.addEventListener('mousemove', (e) => { if(dragging) setVal(e); });
-    document.addEventListener('touchmove', (e) => { if(dragging) setVal(e); }, {passive:true});
-    document.addEventListener('mouseup', () => { dragging = false; });
-    document.addEventListener('touchend', () => { dragging = false; });
+    });
   });
 
   // Sleep quality slider
   const sqTrack = document.getElementById('sqTrack');
   if (sqTrack) {
-    const setVal = (e) => {
+    initSliderTrack(sqTrack, (e) => {
       if (!isViewingToday()) return;
       const rect = sqTrack.getBoundingClientRect();
       const x = (e.touches ? e.touches[0] : e).clientX;
@@ -688,14 +727,7 @@ function initSliders() {
       S.sleepQuality = Math.round(pct * 10);
       saveState(S);
       render();
-    };
-    let dragging = false;
-    sqTrack.addEventListener('mousedown', (e) => { dragging = true; setVal(e); });
-    sqTrack.addEventListener('touchstart', (e) => { dragging = true; setVal(e); }, {passive:true});
-    document.addEventListener('mousemove', (e) => { if(dragging) setVal(e); });
-    document.addEventListener('touchmove', (e) => { if(dragging) setVal(e); }, {passive:true});
-    document.addEventListener('mouseup', () => { dragging = false; });
-    document.addEventListener('touchend', () => { dragging = false; });
+    });
   }
 }
 
