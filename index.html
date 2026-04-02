@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="SkinSync">
+<meta name="apple-mobile-web-app-title" content="LockedIn">
 <link rel="apple-touch-icon" href="icon.png">
-<title>SkinSync</title>
+<title>LockedIn</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg: #0e1117;
@@ -27,6 +27,10 @@
   --gold: #e3b341;
   --orange: #f0883e;
   --orange-glow: rgba(240,136,62,0.15);
+  --red: #f85149;
+  --red-glow: rgba(248,81,73,0.12);
+  --purple: #bc8cff;
+  --purple-glow: rgba(188,140,255,0.12);
 }
 
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
@@ -45,25 +49,54 @@ body {
   padding-top: max(env(safe-area-inset-top), 12px);
 }
 
+/* ---- Header ---- */
 .header { text-align:center; padding:20px 0 6px; }
 .header h1 {
-  font-family:'Playfair Display',serif;
+  font-family:'Oswald',sans-serif;
   font-size:28px; font-weight:700; letter-spacing:-0.5px;
   background:linear-gradient(135deg,var(--water),var(--accent),#bc8cff);
   -webkit-background-clip:text; -webkit-text-fill-color:transparent;
 }
-.header .date { font-size:13px; color:var(--text-dim); margin-top:4px; font-weight:500; }
-.header .day-tag {
+
+/* ---- Day Selector ---- */
+.day-selector { display:flex; justify-content:center; gap:6px; margin:12px 0 4px; }
+.day-pill {
+  width:42px; height:36px; border-radius:10px; border:1px solid var(--border);
+  background:var(--surface); color:var(--text-dim); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+  transition:all 0.2s; font-family:'DM Sans',sans-serif;
+}
+.day-pill:active { transform:scale(0.95); }
+.day-pill.today { border-color:var(--accent); color:var(--accent); background:var(--accent-glow); }
+.day-pill.selected { border-color:var(--green); color:var(--green); background:var(--green-glow); }
+.day-pill.selected.today { border-color:var(--accent); color:var(--accent); background:var(--accent-glow); }
+.day-pill.future { opacity:0.3; pointer-events:none; }
+.day-pill.has-data { position:relative; }
+.day-pill.has-data::after {
+  content:''; position:absolute; bottom:3px; width:4px; height:4px;
+  border-radius:50%; background:var(--green);
+}
+
+.date-label { font-size:13px; color:var(--text-dim); margin-top:6px; font-weight:500; text-align:center; }
+.day-tag {
   display:inline-block; margin-top:6px;
   font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1.5px;
   padding:3px 12px; border-radius:20px;
   background:var(--accent-glow); color:var(--accent);
 }
+.day-tag-wrap { text-align:center; }
+.viewing-past {
+  display:none; text-align:center; margin-top:8px;
+  font-size:12px; color:var(--orange); font-weight:600;
+}
+.viewing-past.show { display:block; }
 
+/* ---- Streak ---- */
 .streak-bar { display:flex; justify-content:center; gap:20px; margin:14px 0 16px; }
 .streak-item { display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--text-dim); }
 .streak-item .num { font-size:18px; font-weight:700; color:var(--gold); }
 
+/* ---- Progress Ring ---- */
 .daily-progress { text-align:center; padding:10px 0 18px; }
 .ring-container { position:relative; width:96px; height:96px; margin:0 auto 8px; }
 .ring-container svg { width:96px; height:96px; transform:rotate(-90deg); }
@@ -73,12 +106,14 @@ body {
 .daily-msg { font-size:13px; color:var(--text-dim); font-weight:500; }
 .daily-msg.complete { color:var(--green); font-weight:600; }
 
+/* ---- Sections ---- */
 .section { background:var(--surface); border:1px solid var(--border); border-radius:16px; margin-bottom:14px; overflow:hidden; }
 .section-header { display:flex; align-items:center; justify-content:space-between; padding:14px 16px 10px; }
 .section-title { font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:1.2px; color:var(--text-dim); }
 .section-badge { font-size:12px; font-weight:600; padding:3px 10px; border-radius:20px; background:var(--accent-glow); color:var(--accent); }
 .section-badge.done { background:var(--green-glow); color:var(--green); }
 
+/* ---- Checklist ---- */
 .checklist { padding:0 12px 12px; }
 .check-item { display:flex; align-items:center; gap:12px; padding:12px; border-radius:12px; cursor:pointer; transition:background 0.15s; -webkit-user-select:none; user-select:none; }
 .check-item:active { background:var(--surface-hover); }
@@ -93,6 +128,7 @@ body {
 .check-item.checked .check-sub { opacity:0.35; }
 .check-icon { font-size:20px; flex-shrink:0; }
 
+/* ---- Water ---- */
 .water-section { padding:0 16px 16px; }
 .water-visual { position:relative; height:110px; border-radius:14px; overflow:hidden; background:rgba(121,192,255,0.04); border:1px solid rgba(121,192,255,0.08); margin-bottom:14px; }
 .water-fill { position:absolute; bottom:0; left:0; right:0; background:linear-gradient(180deg,rgba(121,192,255,0.25),rgba(88,166,255,0.4)); transition:height 0.5s cubic-bezier(0.34,1.56,0.64,1); border-radius:0 0 13px 13px; }
@@ -105,14 +141,20 @@ body {
 .flask-row { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
 .flask-label { font-size:12px; color:var(--text-dim); font-weight:600; white-space:nowrap; }
 .flask-pips { display:flex; gap:6px; flex:1; }
-.flask-pip { flex:1; height:32px; border-radius:8px; border:1px solid rgba(121,192,255,0.15); background:rgba(121,192,255,0.04); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; color:var(--text-dim); transition:all 0.2s; }
+.flask-pip {
+  flex:1; height:32px; border-radius:8px; border:1px solid rgba(121,192,255,0.15);
+  background:rgba(121,192,255,0.04); display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:600; color:var(--text-dim); transition:all 0.3s;
+}
 .flask-pip.filled { background:rgba(121,192,255,0.2); border-color:var(--water); color:var(--water); }
+.flask-pip.complete { background:rgba(63,185,80,0.2); border-color:var(--green); color:var(--green); }
 
 .water-buttons { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; }
 .water-btn { background:var(--surface-hover); border:1px solid var(--border); border-radius:10px; color:var(--water); font-size:13px; font-weight:600; font-family:'DM Sans',sans-serif; padding:10px 2px; cursor:pointer; transition:all 0.15s; text-align:center; }
 .water-btn:active { transform:scale(0.95); background:var(--water-glow); }
 .water-btn.undo { color:var(--text-dim); font-size:12px; }
 
+/* ---- Sleep ---- */
 .sleep-section { padding:0 16px 16px; }
 .sleep-row { display:flex; align-items:center; gap:12px; }
 .sleep-value { font-size:32px; font-weight:700; min-width:56px; text-align:center; }
@@ -123,25 +165,63 @@ body {
 .sleep-btn.active { background:var(--orange-glow); border-color:var(--orange); color:var(--orange); }
 .sleep-msg { text-align:center; font-size:12px; color:var(--text-dim); margin-top:10px; font-weight:500; }
 
-.reset-row { text-align:center; padding-bottom:28px; }
-.reset-btn { background:none; border:none; color:var(--text-dim); font-size:12px; font-family:'DM Sans',sans-serif; cursor:pointer; padding:8px 16px; opacity:0.5; }
+/* ---- Severity Sliders ---- */
+.slider-section { padding:0 16px 16px; }
+.slider-group { margin-bottom:16px; }
+.slider-group:last-child { margin-bottom:0; }
+.slider-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.slider-label { font-size:14px; font-weight:600; }
+.slider-value { font-size:12px; font-weight:600; padding:2px 10px; border-radius:12px; }
+.slider-track { position:relative; height:36px; border-radius:10px; background:var(--surface-hover); border:1px solid var(--border); overflow:hidden; cursor:pointer; -webkit-user-select:none; user-select:none; }
+.slider-fill { position:absolute; top:0; left:0; bottom:0; border-radius:9px; transition:width 0.15s; }
+.slider-notches { position:absolute; inset:0; display:flex; align-items:center; justify-content:space-between; padding:0 12px; pointer-events:none; }
+.slider-notch { font-size:10px; font-weight:500; color:var(--text-dim); z-index:2; }
+.slider-thumb { position:absolute; top:50%; transform:translate(-50%,-50%); width:20px; height:20px; border-radius:50%; background:white; box-shadow:0 1px 6px rgba(0,0,0,0.4); transition:left 0.15s; z-index:3; }
 
+/* Slider color themes */
+.slider-dairy .slider-fill { background:linear-gradient(90deg, rgba(240,136,62,0.1), rgba(240,136,62,0.45)); }
+.slider-dairy .slider-value { background:var(--orange-glow); color:var(--orange); }
+.slider-caffeine .slider-fill { background:linear-gradient(90deg, rgba(188,140,255,0.1), rgba(188,140,255,0.45)); }
+.slider-caffeine .slider-value { background:var(--purple-glow); color:var(--purple); }
+.slider-alcohol .slider-fill { background:linear-gradient(90deg, rgba(248,81,73,0.1), rgba(248,81,73,0.45)); }
+.slider-alcohol .slider-value { background:var(--red-glow); color:var(--red); }
+
+/* Skin Clarity (reverse color — high is good) */
+.slider-skin .slider-fill { background:linear-gradient(90deg, rgba(248,81,73,0.3), rgba(63,185,80,0.45)); }
+.slider-skin .slider-value { background:var(--green-glow); color:var(--green); }
+.slider-skin .slider-value.low { background:var(--red-glow); color:var(--red); }
+.slider-skin .slider-value.mid { background:var(--orange-glow); color:var(--orange); }
+
+/* ---- Workout Toggle ---- */
+.workout-row { display:flex; align-items:center; gap:12px; padding:0 16px 16px; }
+.workout-btn {
+  flex:1; height:48px; border-radius:12px; border:1px solid var(--border);
+  background:var(--surface-hover); color:var(--text-dim); font-size:14px; font-weight:600;
+  font-family:'DM Sans',sans-serif; cursor:pointer; transition:all 0.2s;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.workout-btn:active { transform:scale(0.97); }
+.workout-btn.yes.active { background:var(--green-glow); border-color:var(--green); color:var(--green); }
+.workout-btn.no.active { background:rgba(255,255,255,0.04); border-color:var(--text-dim); color:var(--text-dim); }
+
+/* Sleep Quality Slider */
+.sleep-quality { margin-top:14px; }
+.sq-label-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+.sq-label { font-size:13px; font-weight:600; color:var(--text-dim); }
+.sq-value { font-size:12px; font-weight:600; padding:2px 10px; border-radius:12px; background:var(--orange-glow); color:var(--orange); }
+.sq-value.good { background:var(--green-glow); color:var(--green); }
+.sq-value.mid { background:var(--orange-glow); color:var(--orange); }
+.sq-value.bad { background:var(--red-glow); color:var(--red); }
+
+/* ---- Banners ---- */
 .greeting-banner {
   text-align:center; padding:16px 20px; margin-bottom:14px;
   background:var(--surface); border:1px solid var(--border); border-radius:16px;
   animation: fadeSlideIn 0.5s ease forwards;
 }
-.greeting-banner .greet-text {
-  font-family:'Playfair Display',serif;
-  font-size:20px; font-weight:700; color:var(--text);
-}
-.greeting-banner .greet-sub {
-  font-size:13px; color:var(--text-dim); margin-top:4px; font-weight:500;
-}
-.greeting-banner .dismiss {
-  background:none; border:none; color:var(--text-dim); font-size:11px;
-  font-family:'DM Sans',sans-serif; cursor:pointer; margin-top:8px; opacity:0.5;
-}
+.greeting-banner .greet-text { font-family:'Playfair Display',serif; font-size:20px; font-weight:700; color:var(--text); }
+.greeting-banner .greet-sub { font-size:13px; color:var(--text-dim); margin-top:4px; font-weight:500; }
+.greeting-banner .dismiss { background:none; border:none; color:var(--text-dim); font-size:11px; font-family:'DM Sans',sans-serif; cursor:pointer; margin-top:8px; opacity:0.5; }
 @keyframes fadeSlideIn { 0%{opacity:0;transform:translateY(-8px)} 100%{opacity:1;transform:translateY(0)} }
 
 .night-done-banner {
@@ -149,14 +229,10 @@ body {
   background:var(--surface); border:1px solid rgba(88,166,255,0.2); border-radius:16px;
   animation: fadeSlideIn 0.5s ease forwards;
 }
-.night-done-banner .night-text {
-  font-family:'Playfair Display',serif;
-  font-size:18px; font-weight:700; color:var(--accent);
-}
-.night-done-banner .night-sub {
-  font-size:13px; color:var(--text-dim); margin-top:4px; font-weight:500;
-}
+.night-done-banner .night-text { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; color:var(--accent); }
+.night-done-banner .night-sub { font-size:13px; color:var(--text-dim); margin-top:4px; font-weight:500; }
 
+/* ---- Celebration ---- */
 @keyframes popIn { 0%{transform:translate(-50%,-50%) scale(0.5);opacity:0} 60%{transform:translate(-50%,-50%) scale(1.15)} 100%{transform:translate(-50%,-50%) scale(1);opacity:1} }
 .celebration { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.5); background:var(--surface); border:1px solid var(--green); border-radius:20px; padding:32px 40px; text-align:center; z-index:100; animation:popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards; box-shadow:0 0 60px rgba(63,185,80,0.2); }
 .celebration .emoji { font-size:40px; margin-bottom:8px; }
@@ -164,16 +240,39 @@ body {
 .celebration .sub { font-size:13px; color:var(--text-dim); }
 .overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:99; opacity:0; animation:fadeIn 0.2s forwards; }
 @keyframes fadeIn { to{opacity:1} }
+
+/* ---- Reset ---- */
+.reset-row { text-align:center; padding-bottom:28px; }
+.reset-btn { background:none; border:none; color:var(--text-dim); font-size:12px; font-family:'DM Sans',sans-serif; cursor:pointer; padding:8px 16px; opacity:0.5; }
+
+/* ---- Read-only overlay for past days ---- */
+.readonly-cover {
+  display:none; position:fixed; inset:0; z-index:50;
+  background:transparent; pointer-events:none;
+}
+.readonly-cover.active { display:block; pointer-events:auto; }
+body.past-view .section { opacity:0.85; }
+body.past-view .water-btn,
+body.past-view .sleep-btn,
+body.past-view .check-item,
+body.past-view .slider-track,
+body.past-view .workout-btn,
+body.past-view .reset-btn { pointer-events:none; }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>SkinSync</h1>
-  <div class="date" id="dateLabel"></div>
-  <div class="day-tag" id="dayTag"></div>
+  <h1>LockedIn</h1>
 </div>
 
+<!-- Day Selector -->
+<div class="day-selector" id="daySelector"></div>
+<div class="date-label" id="dateLabel"></div>
+<div class="day-tag-wrap"><div class="day-tag" id="dayTag"></div></div>
+<div class="viewing-past" id="viewingPast">Viewing a past day (read-only)</div>
+
+<!-- Streak -->
 <div class="streak-bar">
   <div class="streak-item">🔥 <span class="num" id="streakCount">0</span> day streak</div>
 </div>
@@ -181,6 +280,7 @@ body {
 <div id="greetingBanner"></div>
 <div id="nightDoneBanner"></div>
 
+<!-- Progress Ring -->
 <div class="daily-progress">
   <div class="ring-container">
     <svg viewBox="0 0 100 100">
@@ -193,22 +293,41 @@ body {
   <div class="daily-msg" id="dailyMsg">Let's get after it 💪</div>
 </div>
 
+<!-- Sleep -->
 <div class="section">
-  <div class="section-header"><span class="section-title">Sleep Time</span><span class="section-badge" id="sleepBadge">Not logged</span></div>
+  <div class="section-header"><span class="section-title">Sleep</span><span class="section-badge" id="sleepBadge">Not logged</span></div>
   <div class="sleep-section">
     <div class="sleep-row">
       <div class="sleep-value" id="sleepDisplay">—<span class="unit"> hrs</span></div>
       <div class="sleep-buttons" id="sleepButtons"></div>
     </div>
     <div class="sleep-msg" id="sleepMsg">How'd you sleep last night?</div>
+    <!-- Sleep Quality -->
+    <div class="sleep-quality" id="sleepQualityWrap" style="display:none;">
+      <div class="sq-label-row">
+        <span class="sq-label">Sleep Quality</span>
+        <span class="sq-value" id="sqValue">—</span>
+      </div>
+      <div class="slider-track" id="sqTrack">
+        <div class="slider-fill" id="sqFill" style="width:0%;background:linear-gradient(90deg,rgba(248,81,73,0.3),rgba(63,185,80,0.45));"></div>
+        <div class="slider-thumb" id="sqThumb" style="left:0%"></div>
+        <div class="slider-notches">
+          <span class="slider-notch">Terrible</span>
+          <span class="slider-notch"></span>
+          <span class="slider-notch">Refreshed</span>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
+<!-- Morning Routine -->
 <div class="section">
-  <div class="section-header"><span class="section-title">Morning Routine</span><span class="section-badge" id="morningBadge">0/0</span></div>
+  <div class="section-header"><span class="section-title">Morning Skincare</span><span class="section-badge" id="morningBadge">0/0</span></div>
   <div class="checklist" id="morningList"></div>
 </div>
 
+<!-- Hydration -->
 <div class="section">
   <div class="section-header"><span class="section-title">Hydration</span><span class="section-badge" id="waterBadge">0 / 130 oz</span></div>
   <div class="water-section">
@@ -228,44 +347,152 @@ body {
       <button class="water-btn" onclick="addWater(20)">+20</button>
       <button class="water-btn" onclick="addWater(30)">+30</button>
       <button class="water-btn" onclick="addWater(40)">+40</button>
-      <button class="water-btn undo" onclick="addWater(-40)">↩</button>
+      <button class="water-btn undo" onclick="undoWater()">↩ Undo</button>
     </div>
   </div>
 </div>
 
+<!-- Severity Trackers + Workout -->
+<div class="section">
+  <div class="section-header"><span class="section-title">Daily Trackers</span><span class="section-badge" id="trackerBadge">Not logged</span></div>
+  <div class="slider-section">
+
+    <!-- Skin Clarity -->
+    <div class="slider-group slider-skin">
+      <div class="slider-header">
+        <span class="slider-label">Skin Clarity</span>
+        <span class="slider-value" id="skinVal">—</span>
+      </div>
+      <div class="slider-track" id="skinTrack" data-key="skinClarity" data-min="0" data-max="10">
+        <div class="slider-fill" id="skinFill" style="width:0%"></div>
+        <div class="slider-thumb" id="skinThumb" style="left:0%"></div>
+        <div class="slider-notches">
+          <span class="slider-notch">Breakout</span>
+          <span class="slider-notch"></span>
+          <span class="slider-notch">Flawless</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dairy -->
+    <div class="slider-group slider-dairy">
+      <div class="slider-header">
+        <span class="slider-label">Dairy Intake</span>
+        <span class="slider-value" id="dairyVal">—</span>
+      </div>
+      <div class="slider-track" id="dairyTrack" data-key="dairy" data-min="0" data-max="10">
+        <div class="slider-fill" id="dairyFill" style="width:0%"></div>
+        <div class="slider-thumb" id="dairyThumb" style="left:0%"></div>
+        <div class="slider-notches">
+          <span class="slider-notch">None</span>
+          <span class="slider-notch">Some</span>
+          <span class="slider-notch">A Lot</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Caffeine -->
+    <div class="slider-group slider-caffeine">
+      <div class="slider-header">
+        <span class="slider-label">Caffeine Intake</span>
+        <span class="slider-value" id="caffeineVal">—</span>
+      </div>
+      <div class="slider-track" id="caffeineTrack" data-key="caffeine" data-min="0" data-max="10">
+        <div class="slider-fill" id="caffeineFill" style="width:0%"></div>
+        <div class="slider-thumb" id="caffeineThumb" style="left:0%"></div>
+        <div class="slider-notches">
+          <span class="slider-notch">None</span>
+          <span class="slider-notch">Moderate</span>
+          <span class="slider-notch">Wired</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alcohol -->
+    <div class="slider-group slider-alcohol">
+      <div class="slider-header">
+        <span class="slider-label">Alcohol Intake</span>
+        <span class="slider-value" id="alcoholVal">—</span>
+      </div>
+      <div class="slider-track" id="alcoholTrack" data-key="alcohol" data-min="0" data-max="10">
+        <div class="slider-fill" id="alcoholFill" style="width:0%"></div>
+        <div class="slider-thumb" id="alcoholThumb" style="left:0%"></div>
+        <div class="slider-notches">
+          <span class="slider-notch">None</span>
+          <span class="slider-notch">A Few</span>
+          <span class="slider-notch">Heavy</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Workout Toggle -->
+    <div class="slider-group">
+      <div class="slider-header">
+        <span class="slider-label">Did You Work Out?</span>
+      </div>
+      <div class="workout-row" style="padding:0;">
+        <button class="workout-btn yes" id="workoutYes" onclick="setWorkout(true)">✅ Yes</button>
+        <button class="workout-btn no" id="workoutNo" onclick="setWorkout(false)">❌ No</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Night Routine -->
 <div class="section">
   <div class="section-header"><span class="section-title">Night Routine</span><span class="section-badge" id="eveningBadge">0/3</span></div>
   <div class="checklist" id="eveningList"></div>
 </div>
 
-
-
-
-
 <div class="reset-row"><button class="reset-btn" onclick="resetDay()">Reset today</button></div>
 
 <script>
+// ============ CONSTANTS ============
 const WATER_GOAL = 130;
 const FLASK = 40;
 const NUM_FLASKS = Math.ceil(WATER_GOAL / FLASK);
+const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const DAY_FULL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
+// ============ DATE HELPERS ============
 function getToday() { return new Date().toISOString().slice(0,10); }
-function getDow() { return new Date().getDay(); }
-function getDayName() { return ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][getDow()]; }
+function getDow(dateStr) {
+  if (!dateStr) return new Date().getDay();
+  return new Date(dateStr + 'T12:00:00').getDay();
+}
 
-function getMorning() {
-  const d = getDow();
+function getWeekDates() {
+  const now = new Date();
+  const today = now.getDay(); // 0=Sun
+  const dates = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(now);
+    d.setDate(now.getDate() - today + i);
+    dates.push(d.toISOString().slice(0,10));
+  }
+  return dates;
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  return d.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+}
+
+// ============ ROUTINES (based on day-of-week) ============
+function getMorning(dow) {
+  if (dow === undefined) dow = getDow(viewingDate);
   const items = [];
-  if ([1,3,5].includes(d)) items.push({id:'am_panoxyl',label:'PanOxyl Foaming Wash',sub:'Benzoyl peroxide — M/W/F',icon:''});
+  if ([1,3,5].includes(dow)) items.push({id:'am_panoxyl',label:'PanOxyl Foaming Wash',sub:'Benzoyl peroxide — M/W/F',icon:''});
   items.push({id:'am_moist',label:'Moisturizer',sub:'CeraVe Moisturizing Cream',icon:''});
   items.push({id:'am_spf',label:'Sunscreen',sub:'SPF 30+',icon:''});
   return items;
 }
 
-function getEvening() {
-  const d = getDow();
+function getEvening(dow) {
+  if (dow === undefined) dow = getDow(viewingDate);
   const items = [{id:'pm_cleanser',label:'Neutragena Gentle Cleanser',sub:'Foaming Formula',icon:''}];
-  if (d === 0) {
+  if (dow === 0) {
     items.push({id:'pm_paulas',label:"Paula's Choice Liquid Exfoliant",sub:'Sunday night exfoliation',icon:''});
   } else {
     items.push({id:'pm_differin',label:'Differin Adapalene Gel',sub:'Retinoid — Mon–Sat',icon:''});
@@ -274,49 +501,236 @@ function getEvening() {
   return items;
 }
 
-// State
-function streakInfo() { try { return JSON.parse(localStorage.getItem('ss_streak'))||{s:0,b:0}; } catch { return {s:0,b:0}; } }
-
-function calcProg(st) {
-  const all = [...getMorning(),...getEvening()];
-  let done = all.filter(i=>st.checks[i.id]).length;
-  const cp = done/all.length, wp = Math.min(st.water/WATER_GOAL,1), sp = st.sleep!==null?1:0;
-  return Math.round((cp*0.5+wp*0.35+sp*0.15)*100);
+function getDayTag(dow) {
+  if (dow === 0) return 'Exfoliant Night';
+  if ([1,3,5].includes(dow)) return 'PanOxyl Day';
+  return 'Gentle Day';
 }
 
-function finalize(prev) {
-  if(!prev)return;
-  const ok = calcProg(prev)>=100;
-  let si = streakInfo();
-  if(ok) si.s++; else si.s=0;
-  if(si.s>si.b) si.b=si.s;
-  localStorage.setItem('ss_streak',JSON.stringify(si));
+// ============ STATE MANAGEMENT ============
+// Each day is stored as ss_YYYY-MM-DD in localStorage
+function stateKey(dateStr) { return 'ss_' + dateStr; }
+
+function defaultState(dateStr) {
+  return {
+    date: dateStr,
+    checks: {},
+    water: 0,
+    waterHistory: [],
+    sleep: null,
+    sleepQuality: null,
+    skinClarity: null,
+    dairy: null,
+    caffeine: null,
+    alcohol: null,
+    workout: null
+  };
 }
 
-function load() {
+function loadState(dateStr) {
   try {
-    const r=localStorage.getItem('ss2');
-    if(!r)return null;
-    const s=JSON.parse(r);
-    if(s.date!==getToday()){finalize(s);return null;}
-    return s;
-  } catch{return null;}
+    const raw = localStorage.getItem(stateKey(dateStr));
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch { return null; }
 }
 
-function defaults() {
-  const si=streakInfo();
-  return {date:getToday(),checks:{},water:0,sleep:null,streak:si.s};
+function saveState(state) {
+  localStorage.setItem(stateKey(state.date), JSON.stringify(state));
 }
 
-function save(s){localStorage.setItem('ss2',JSON.stringify(s));}
+// ============ STREAK SYSTEM ============
+function getStreakData() {
+  try { return JSON.parse(localStorage.getItem('ss_streak_v2')) || { current: 0, best: 0, lastComplete: null }; }
+  catch { return { current: 0, best: 0, lastComplete: null }; }
+}
 
-let S = load()||defaults();
+function saveStreakData(sd) { localStorage.setItem('ss_streak_v2', JSON.stringify(sd)); }
+
+function isDayComplete(dateStr) {
+  const state = loadState(dateStr);
+  if (!state) return false;
+  return calcProg(state, dateStr) >= 100;
+}
+
+function recalcStreak() {
+  // Walk backwards from yesterday counting consecutive complete days
+  const sd = getStreakData();
+  let streak = 0;
+  const today = getToday();
+  const d = new Date();
+
+  // Check if today is complete — if so, include it
+  if (isDayComplete(today)) {
+    streak = 1;
+    let check = new Date();
+    check.setDate(check.getDate() - 1);
+    while (true) {
+      const ds = check.toISOString().slice(0,10);
+      if (isDayComplete(ds)) { streak++; check.setDate(check.getDate() - 1); }
+      else break;
+    }
+  } else {
+    // Check from yesterday backwards
+    let check = new Date();
+    check.setDate(check.getDate() - 1);
+    while (true) {
+      const ds = check.toISOString().slice(0,10);
+      if (isDayComplete(ds)) { streak++; check.setDate(check.getDate() - 1); }
+      else break;
+    }
+  }
+
+  sd.current = streak;
+  if (streak > sd.best) sd.best = streak;
+  saveStreakData(sd);
+  return sd;
+}
+
+// ============ PROGRESS CALCULATION ============
+function calcProg(state, dateStr) {
+  const dow = getDow(dateStr);
+  const am = getMorning(dow), pm = getEvening(dow);
+  const all = [...am, ...pm];
+  const done = all.filter(i => state.checks[i.id]).length;
+
+  // Weights: routines 40%, water 25%, sleep 15%, trackers 10%, workout 10%
+  const routinePct = all.length > 0 ? done / all.length : 0;
+  const waterPct = Math.min(state.water / WATER_GOAL, 1);
+  const sleepPct = state.sleep !== null ? 1 : 0;
+
+  // Trackers: skin clarity logged = done
+  const trackersDone = [state.skinClarity, state.dairy, state.caffeine, state.alcohol].filter(v => v !== null).length;
+  const trackerPct = trackersDone / 4;
+
+  const workoutPct = state.workout !== null ? 1 : 0;
+
+  return Math.round((routinePct * 0.40 + waterPct * 0.25 + sleepPct * 0.15 + trackerPct * 0.10 + workoutPct * 0.10) * 100);
+}
+
+// ============ APP STATE ============
+let viewingDate = getToday();
+let S = loadState(viewingDate) || defaultState(viewingDate);
 let celeb = false;
 let nightBannerShown = false;
 
-// Morning greeting — show once per day, before 11am, on first open
+function isViewingToday() { return viewingDate === getToday(); }
+
+function switchDay(dateStr) {
+  // Save current state first
+  saveState(S);
+  viewingDate = dateStr;
+  S = loadState(dateStr) || defaultState(dateStr);
+  celeb = false;
+  nightBannerShown = false;
+  render();
+}
+
+// ============ WATER with UNDO ============
+function addWater(oz) {
+  if (!isViewingToday()) return;
+  if (!S.waterHistory) S.waterHistory = [];
+  S.waterHistory.push(oz);
+  S.water = Math.max(0, S.water + oz);
+  saveState(S);
+  render();
+}
+
+function undoWater() {
+  if (!isViewingToday()) return;
+  if (!S.waterHistory || S.waterHistory.length === 0) return;
+  const last = S.waterHistory.pop();
+  S.water = Math.max(0, S.water - last);
+  saveState(S);
+  render();
+}
+
+// ============ WORKOUT ============
+function setWorkout(val) {
+  if (!isViewingToday()) return;
+  S.workout = S.workout === val ? null : val;
+  saveState(S);
+  render();
+}
+
+// ============ SLIDER LOGIC ============
+function initSliders() {
+  const tracks = document.querySelectorAll('.slider-track[data-key]');
+  tracks.forEach(track => {
+    const key = track.dataset.key;
+    const setVal = (e) => {
+      if (!isViewingToday()) return;
+      const rect = track.getBoundingClientRect();
+      const x = (e.touches ? e.touches[0] : e).clientX;
+      let pct = Math.max(0, Math.min(1, (x - rect.left) / rect.width));
+      const val = Math.round(pct * 10);
+      S[key] = val;
+      saveState(S);
+      render();
+    };
+    let dragging = false;
+    track.addEventListener('mousedown', (e) => { dragging = true; setVal(e); });
+    track.addEventListener('touchstart', (e) => { dragging = true; setVal(e); }, {passive:true});
+    document.addEventListener('mousemove', (e) => { if(dragging) setVal(e); });
+    document.addEventListener('touchmove', (e) => { if(dragging) setVal(e); }, {passive:true});
+    document.addEventListener('mouseup', () => { dragging = false; });
+    document.addEventListener('touchend', () => { dragging = false; });
+  });
+
+  // Sleep quality slider
+  const sqTrack = document.getElementById('sqTrack');
+  if (sqTrack) {
+    const setVal = (e) => {
+      if (!isViewingToday()) return;
+      const rect = sqTrack.getBoundingClientRect();
+      const x = (e.touches ? e.touches[0] : e).clientX;
+      let pct = Math.max(0, Math.min(1, (x - rect.left) / rect.width));
+      S.sleepQuality = Math.round(pct * 10);
+      saveState(S);
+      render();
+    };
+    let dragging = false;
+    sqTrack.addEventListener('mousedown', (e) => { dragging = true; setVal(e); });
+    sqTrack.addEventListener('touchstart', (e) => { dragging = true; setVal(e); }, {passive:true});
+    document.addEventListener('mousemove', (e) => { if(dragging) setVal(e); });
+    document.addEventListener('touchmove', (e) => { if(dragging) setVal(e); }, {passive:true});
+    document.addEventListener('mouseup', () => { dragging = false; });
+    document.addEventListener('touchend', () => { dragging = false; });
+  }
+}
+
+// ============ RENDER ============
+function renderDaySelector() {
+  const el = document.getElementById('daySelector');
+  const week = getWeekDates();
+  const today = getToday();
+  el.innerHTML = '';
+  week.forEach((ds, i) => {
+    const pill = document.createElement('div');
+    pill.className = 'day-pill';
+    pill.textContent = DAY_NAMES[i];
+    if (ds === today) pill.classList.add('today');
+    if (ds === viewingDate) pill.classList.add('selected');
+    if (ds > today) pill.classList.add('future');
+    if (loadState(ds)) pill.classList.add('has-data');
+    pill.addEventListener('click', () => { if (ds <= today) switchDay(ds); });
+    el.appendChild(pill);
+  });
+
+  // Viewing past indicator
+  const pastEl = document.getElementById('viewingPast');
+  if (!isViewingToday()) {
+    pastEl.classList.add('show');
+    document.body.classList.add('past-view');
+  } else {
+    pastEl.classList.remove('show');
+    document.body.classList.remove('past-view');
+  }
+}
+
 function renderGreeting() {
   const el = document.getElementById('greetingBanner');
+  if (!isViewingToday()) { el.innerHTML = ''; return; }
   const hour = new Date().getHours();
   const key = 'ss_greeted_' + getToday();
   if (hour < 11 && !localStorage.getItem(key)) {
@@ -331,9 +745,9 @@ function renderGreeting() {
   }
 }
 
-// Night routine done banner — after 6pm, when all evening checks are done
 function renderNightBanner() {
   const el = document.getElementById('nightDoneBanner');
+  if (!isViewingToday()) { el.innerHTML = ''; return; }
   const hour = new Date().getHours();
   const pm = getEvening();
   const allDone = pm.every(i => S.checks[i.id]);
@@ -349,108 +763,251 @@ function renderNightBanner() {
   }
 }
 
-function addWater(oz){S.water=Math.max(0,S.water+oz);save(S);render();}
-
-function buildList(id,items){
-  const el=document.getElementById(id);el.innerHTML='';
-  items.forEach(item=>{
-    const d=document.createElement('div');
-    d.className='check-item'+(S.checks[item.id]?' checked':'');
-    d.innerHTML=`<div class="checkbox"><svg viewBox="0 0 14 14" fill="none"><path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="check-info"><div class="check-label">${item.label}</div><div class="check-sub">${item.sub}</div></div><span class="check-icon">${item.icon}</span>`;
-    d.addEventListener('click',()=>{S.checks[item.id]=!S.checks[item.id];save(S);render();});
+function buildList(id, items) {
+  const el = document.getElementById(id);
+  el.innerHTML = '';
+  items.forEach(item => {
+    const d = document.createElement('div');
+    d.className = 'check-item' + (S.checks[item.id] ? ' checked' : '');
+    d.innerHTML = `<div class="checkbox"><svg viewBox="0 0 14 14" fill="none"><path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="check-info"><div class="check-label">${item.label}</div><div class="check-sub">${item.sub}</div></div><span class="check-icon">${item.icon}</span>`;
+    d.addEventListener('click', () => {
+      if (!isViewingToday()) return;
+      S.checks[item.id] = !S.checks[item.id];
+      saveState(S);
+      render();
+    });
     el.appendChild(d);
   });
 }
 
-function renderFlasks(){
-  const el=document.getElementById('flaskPips');el.innerHTML='';
-  const full=Math.floor(S.water/FLASK), part=S.water%FLASK;
-  for(let i=0;i<NUM_FLASKS;i++){
-    const p=document.createElement('div');p.className='flask-pip';
-    if(i<full){p.classList.add('filled');p.textContent='40';}
-    else if(i===full&&part>0){
-      p.style.background=`linear-gradient(to top,rgba(121,192,255,0.2) ${(part/FLASK)*100}%,rgba(121,192,255,0.04) ${(part/FLASK)*100}%)`;
-      p.style.borderColor='rgba(121,192,255,0.3)';p.style.color='var(--water)';p.textContent=part;
+function renderFlasks() {
+  const el = document.getElementById('flaskPips');
+  el.innerHTML = '';
+  const full = Math.floor(S.water / FLASK), part = S.water % FLASK;
+  for (let i = 0; i < NUM_FLASKS; i++) {
+    const p = document.createElement('div');
+    p.className = 'flask-pip';
+    if (i < full) {
+      p.classList.add('filled');
+      // Check if the total water has filled this flask completely toward goal
+      if ((i + 1) * FLASK <= WATER_GOAL) {
+        p.classList.add('complete'); // turns green
+      }
+      p.textContent = '40';
+    } else if (i === full && part > 0) {
+      p.style.background = `linear-gradient(to top,rgba(121,192,255,0.2) ${(part/FLASK)*100}%,rgba(121,192,255,0.04) ${(part/FLASK)*100}%)`;
+      p.style.borderColor = 'rgba(121,192,255,0.3)';
+      p.style.color = 'var(--water)';
+      p.textContent = part;
     }
     el.appendChild(p);
   }
 }
 
-function renderSleep(){
-  const c=document.getElementById('sleepButtons');c.innerHTML='';
-  [4,5,6,7,8].forEach(h=>{
-    const b=document.createElement('button');
-    b.className='sleep-btn'+(S.sleep===h?' active':'');
-    b.textContent=h+'h';
-    b.addEventListener('click',()=>{S.sleep=S.sleep===h?null:h;save(S);render();});
+function renderSleep() {
+  const c = document.getElementById('sleepButtons');
+  c.innerHTML = '';
+  [4,5,6,7,8].forEach(h => {
+    const b = document.createElement('button');
+    b.className = 'sleep-btn' + (S.sleep === h ? ' active' : '');
+    b.textContent = h + 'h';
+    b.addEventListener('click', () => {
+      if (!isViewingToday()) return;
+      S.sleep = S.sleep === h ? null : h;
+      saveState(S);
+      render();
+    });
     c.appendChild(b);
   });
-  const disp=document.getElementById('sleepDisplay');
-  const badge=document.getElementById('sleepBadge');
-  const msg=document.getElementById('sleepMsg');
-  if(S.sleep!==null){
-    disp.innerHTML=S.sleep+'<span class="unit"> hrs</span>';
-    badge.textContent=S.sleep+' hrs';
-    badge.className='section-badge'+(S.sleep>=7?' done':'');
-    msg.textContent=S.sleep>=8?'Hell Yeah':S.sleep>=7?'Solid Sleep!':S.sleep>=6?'Could be better...':'Yikes...';
+  const disp = document.getElementById('sleepDisplay');
+  const badge = document.getElementById('sleepBadge');
+  const msg = document.getElementById('sleepMsg');
+  if (S.sleep !== null) {
+    disp.innerHTML = S.sleep + '<span class="unit"> hrs</span>';
+    badge.textContent = S.sleep + ' hrs';
+    badge.className = 'section-badge' + (S.sleep >= 7 ? ' done' : '');
+    msg.textContent = S.sleep >= 8 ? 'Hell Yeah!' : S.sleep >= 7 ? 'Solid Sleep!' : S.sleep >= 6 ? 'Could be better...' : 'Yikes...';
   } else {
-    disp.innerHTML='—<span class="unit"> hrs</span>';
-    badge.textContent='Not logged';badge.className='section-badge';
-    msg.textContent="How'd you sleep last night?";
+    disp.innerHTML = '—<span class="unit"> hrs</span>';
+    badge.textContent = 'Not logged'; badge.className = 'section-badge';
+    msg.textContent = "How'd you sleep last night?";
+  }
+
+  // Sleep quality slider
+  const wrap = document.getElementById('sleepQualityWrap');
+  if (S.sleep !== null) {
+    wrap.style.display = 'block';
+    const val = S.sleepQuality;
+    const sqValEl = document.getElementById('sqValue');
+    const sqFill = document.getElementById('sqFill');
+    const sqThumb = document.getElementById('sqThumb');
+    if (val !== null) {
+      const pct = (val / 10) * 100;
+      sqFill.style.width = pct + '%';
+      sqThumb.style.left = pct + '%';
+      const labels = ['Awful','Awful','Poor','Poor','Meh','Okay','Decent','Good','Great','Amazing','Perfect'];
+      sqValEl.textContent = val + '/10 · ' + labels[val];
+      sqValEl.className = 'sq-value' + (val >= 7 ? ' good' : val >= 4 ? ' mid' : ' bad');
+    } else {
+      sqFill.style.width = '0%';
+      sqThumb.style.left = '0%';
+      sqValEl.textContent = '—';
+      sqValEl.className = 'sq-value';
+    }
+  } else {
+    wrap.style.display = 'none';
   }
 }
 
-function render(){
+function renderSliders() {
+  // Skin Clarity
+  renderOneSlider('skinClarity', 'skinFill', 'skinThumb', 'skinVal', S.skinClarity, (v) => {
+    const labels = ['Severe','Bad','Bad','Rough','Meh','Okay','Decent','Good','Great','Clear!','Flawless'];
+    const el = document.getElementById('skinVal');
+    el.textContent = v + '/10 · ' + labels[v];
+    el.className = 'slider-value' + (v >= 7 ? '' : v >= 4 ? ' mid' : ' low');
+  });
+  // Dairy
+  renderOneSlider('dairy', 'dairyFill', 'dairyThumb', 'dairyVal', S.dairy, (v) => {
+    const labels = ['None','Trace','Light','Light','Some','Moderate','Moderate','Heavy','Heavy','Binging','Gallon of Milk'];
+    document.getElementById('dairyVal').textContent = v + '/10 · ' + labels[v];
+  });
+  // Caffeine
+  renderOneSlider('caffeine', 'caffeineFill', 'caffeineThumb', 'caffeineVal', S.caffeine, (v) => {
+    const labels = ['None','Sip','Light','Light','Moderate','Moderate','Plenty','Lots','Wired','Vibrating','☠️'];
+    document.getElementById('caffeineVal').textContent = v + '/10 · ' + labels[v];
+  });
+  // Alcohol
+  renderOneSlider('alcohol', 'alcoholFill', 'alcoholThumb', 'alcoholVal', S.alcohol, (v) => {
+    const labels = ['None','Sip','Light','Light','A Few','Moderate','Moderate','Heavy','Heavy','Hammered','Blackout'];
+    document.getElementById('alcoholVal').textContent = v + '/10 · ' + labels[v];
+  });
+}
+
+function renderOneSlider(key, fillId, thumbId, valId, value, labelFn) {
+  const fill = document.getElementById(fillId);
+  const thumb = document.getElementById(thumbId);
+  if (value !== null) {
+    const pct = (value / 10) * 100;
+    fill.style.width = pct + '%';
+    thumb.style.left = pct + '%';
+    labelFn(value);
+  } else {
+    fill.style.width = '0%';
+    thumb.style.left = '0%';
+    document.getElementById(valId).textContent = '—';
+  }
+}
+
+function renderWorkout() {
+  const yBtn = document.getElementById('workoutYes');
+  const nBtn = document.getElementById('workoutNo');
+  yBtn.className = 'workout-btn yes' + (S.workout === true ? ' active' : '');
+  nBtn.className = 'workout-btn no' + (S.workout === false ? ' active' : '');
+}
+
+function renderTrackerBadge() {
+  const logged = [S.skinClarity, S.dairy, S.caffeine, S.alcohol, S.workout].filter(v => v !== null).length;
+  const badge = document.getElementById('trackerBadge');
+  badge.textContent = logged + ' / 5 logged';
+  badge.className = 'section-badge' + (logged >= 5 ? ' done' : '');
+}
+
+function render() {
+  renderDaySelector();
   renderGreeting();
-  // Date
-  const d=new Date();
-  document.getElementById('dateLabel').textContent=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
-  const dow=getDow();
-  const tag=dow===0?'Exfoliant Night':[1,3,5].includes(dow)?'PanOxyl Day':'Gentle Day';
-  document.getElementById('dayTag').textContent=tag;
 
-  const am=getMorning(),pm=getEvening();
-  buildList('morningList',am); buildList('eveningList',pm);
+  // Date & Day Tag
+  document.getElementById('dateLabel').textContent = formatDate(viewingDate);
+  const dow = getDow(viewingDate);
+  document.getElementById('dayTag').textContent = getDayTag(dow);
 
-  const mc=am.filter(i=>S.checks[i.id]).length, pc=pm.filter(i=>S.checks[i.id]).length;
-  const mb=document.getElementById('morningBadge'); mb.textContent=`${mc} / ${am.length}`; mb.className='section-badge'+(mc===am.length?' done':'');
-  const eb=document.getElementById('eveningBadge'); eb.textContent=`${pc} / ${pm.length}`; eb.className='section-badge'+(pc===pm.length?' done':'');
+  // Routines
+  const am = getMorning(dow), pm = getEvening(dow);
+  buildList('morningList', am);
+  buildList('eveningList', pm);
+
+  const mc = am.filter(i => S.checks[i.id]).length;
+  const pc = pm.filter(i => S.checks[i.id]).length;
+  const mb = document.getElementById('morningBadge'); mb.textContent = `${mc} / ${am.length}`; mb.className = 'section-badge' + (mc === am.length ? ' done' : '');
+  const eb = document.getElementById('eveningBadge'); eb.textContent = `${pc} / ${pm.length}`; eb.className = 'section-badge' + (pc === pm.length ? ' done' : '');
   renderNightBanner();
 
   // Water
-  const wp=Math.min((S.water/WATER_GOAL)*100,100);
-  document.getElementById('waterFill').style.height=wp+'%';
-  document.getElementById('waterOz').textContent=S.water;
-  const wb=document.getElementById('waterBadge');wb.textContent=`${S.water} / ${WATER_GOAL} oz`;wb.className='section-badge'+(S.water>=WATER_GOAL?' done':'');
-  renderFlasks(); renderSleep();
+  const wp = Math.min((S.water / WATER_GOAL) * 100, 100);
+  document.getElementById('waterFill').style.height = wp + '%';
+  document.getElementById('waterOz').textContent = S.water;
+  const wb = document.getElementById('waterBadge');
+  wb.textContent = `${S.water} / ${WATER_GOAL} oz`;
+  wb.className = 'section-badge' + (S.water >= WATER_GOAL ? ' done' : '');
+  renderFlasks();
+  renderSleep();
+  renderSliders();
+  renderWorkout();
+  renderTrackerBadge();
 
-  // Ring
-  const pct=calcProg(S);
-  const circ=2*Math.PI*42;
-  document.getElementById('ringFill').style.strokeDashoffset=circ-(pct/100)*circ;
-  document.getElementById('ringPct').textContent=pct+'%';
-  document.getElementById('streakCount').textContent=S.streak;
+  // Progress Ring
+  const pct = calcProg(S, viewingDate);
+  const circ = 2 * Math.PI * 42;
+  document.getElementById('ringFill').style.strokeDashoffset = circ - (pct / 100) * circ;
+  document.getElementById('ringPct').textContent = pct + '%';
 
+  // Streak
+  const sd = recalcStreak();
+  document.getElementById('streakCount').textContent = sd.current;
 
-  const m=document.getElementById('dailyMsg');
-  if(pct>=100){m.textContent='Perfect day. Skin is gonna thank you!';m.className='daily-msg complete';if(!celeb){celeb=true;showCeleb();}}
-  else if(pct>=75){m.textContent='Almost there. Finish strong';m.className='daily-msg';}
-  else if(pct>=40){m.textContent='Good progress. Keep it going';m.className='daily-msg';}
-  else{m.textContent="Stay with it!";m.className='daily-msg';}
+  // Daily Message
+  const m = document.getElementById('dailyMsg');
+  if (pct >= 100) {
+    m.textContent = 'Perfect day. Let\'s Go!';
+    m.className = 'daily-msg complete';
+    if (!celeb && isViewingToday()) { celeb = true; showCeleb(sd); }
+  } else if (pct >= 75) { m.textContent = 'Almost there. Finish strong!'; m.className = 'daily-msg'; }
+  else if (pct >= 40) { m.textContent = 'Good progress. Keep it going!'; m.className = 'daily-msg'; }
+  else { m.textContent = "Let's get it started!"; m.className = 'daily-msg'; }
 }
 
-function showCeleb(){
-  const o=document.createElement('div');o.className='overlay';
-  const p=document.createElement('div');p.className='celebration';
-  p.innerHTML=`<div class="emoji">✅</div><div class="title">Day Complete!</div><div class="sub">Streak: ${S.streak+1} day${S.streak?'s':''}</div>`;
-  document.body.appendChild(o);document.body.appendChild(p);
-  const x=()=>{o.remove();p.remove();};
-  o.addEventListener('click',x);p.addEventListener('click',x);setTimeout(x,3000);
+function showCeleb(sd) {
+  const o = document.createElement('div'); o.className = 'overlay';
+  const p = document.createElement('div'); p.className = 'celebration';
+  p.innerHTML = `<div class="emoji">✅</div><div class="title">Day Complete!</div><div class="sub">🔥 Streak: ${sd.current} day${sd.current !== 1 ? 's' : ''}</div>`;
+  document.body.appendChild(o); document.body.appendChild(p);
+  const x = () => { o.remove(); p.remove(); };
+  o.addEventListener('click', x); p.addEventListener('click', x); setTimeout(x, 3000);
 }
 
-function resetDay(){if(confirm('Reset all progress for today?')){S=defaults();celeb=false;save(S);render();}}
+function resetDay() {
+  if (!isViewingToday()) return;
+  if (confirm('Reset all progress for today?')) {
+    S = defaultState(getToday());
+    celeb = false;
+    saveState(S);
+    render();
+  }
+}
 
+// ============ MIDNIGHT AUTO-RESET ============
+function scheduleReset() {
+  const now = new Date();
+  const midnight = new Date(now);
+  midnight.setHours(24, 0, 0, 0);
+  const ms = midnight - now;
+  setTimeout(() => {
+    // Save current day, switch to new day
+    saveState(S);
+    viewingDate = getToday();
+    S = loadState(viewingDate) || defaultState(viewingDate);
+    celeb = false;
+    nightBannerShown = false;
+    render();
+    scheduleReset(); // schedule next midnight
+  }, ms + 500); // 500ms buffer
+}
+
+// ============ INIT ============
+initSliders();
 render();
+scheduleReset();
 </script>
 </body>
 </html>
