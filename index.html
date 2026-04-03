@@ -274,7 +274,8 @@ body.past-view .reset-btn { pointer-events:none; }
 
 <!-- Streak -->
 <div class="streak-bar">
-  <div class="streak-item">🔥 <span class="num" id="streakCount">0</span> day streak</div>
+  <div class="streak-item">🔥 <span class="num" id="loggedStreak">0</span> logged</div>
+  <div class="streak-item">⭐ <span class="num" id="perfectStreak">0</span> perfect</div>
 </div>
 
 <div id="greetingBanner"></div>
@@ -561,35 +562,67 @@ function isDayComplete(dateStr) {
   return calcProg(state, dateStr) >= 100;
 }
 
+function isDayLogged(dateStr) {
+  const state = loadState(dateStr);
+  if (!state) return false;
+  // "Logged" = user interacted with anything at all
+  const hasChecks = Object.values(state.checks).some(v => v);
+  const hasWater = state.water > 0;
+  const hasSleep = state.sleep !== null;
+  const hasTracker = [state.skinClarity, state.dairy, state.caffeine, state.alcohol].some(v => v !== null);
+  const hasWorkout = state.workout !== null;
+  return hasChecks || hasWater || hasSleep || hasTracker || hasWorkout;
+}
+
 function recalcStreak() {
-  // Walk backwards from yesterday counting consecutive complete days
   const sd = getStreakData();
-  let streak = 0;
   const today = getToday();
 
-  // Check if today is complete — if so, include it
-  if (isDayComplete(today)) {
-    streak = 1;
+  // Logged streak — consecutive days where user logged anything
+  let logged = 0;
+  if (isDayLogged(today)) {
+    logged = 1;
     let check = new Date();
     check.setDate(check.getDate() - 1);
     while (true) {
       const ds = toLocalDateStr(check);
-      if (isDayComplete(ds)) { streak++; check.setDate(check.getDate() - 1); }
+      if (isDayLogged(ds)) { logged++; check.setDate(check.getDate() - 1); }
       else break;
     }
   } else {
-    // Check from yesterday backwards
     let check = new Date();
     check.setDate(check.getDate() - 1);
     while (true) {
       const ds = toLocalDateStr(check);
-      if (isDayComplete(ds)) { streak++; check.setDate(check.getDate() - 1); }
+      if (isDayLogged(ds)) { logged++; check.setDate(check.getDate() - 1); }
       else break;
     }
   }
 
-  sd.current = streak;
-  if (streak > sd.best) sd.best = streak;
+  // Perfect streak — consecutive days at 100%
+  let perfect = 0;
+  if (isDayComplete(today)) {
+    perfect = 1;
+    let check = new Date();
+    check.setDate(check.getDate() - 1);
+    while (true) {
+      const ds = toLocalDateStr(check);
+      if (isDayComplete(ds)) { perfect++; check.setDate(check.getDate() - 1); }
+      else break;
+    }
+  } else {
+    let check = new Date();
+    check.setDate(check.getDate() - 1);
+    while (true) {
+      const ds = toLocalDateStr(check);
+      if (isDayComplete(ds)) { perfect++; check.setDate(check.getDate() - 1); }
+      else break;
+    }
+  }
+
+  sd.logged = logged;
+  sd.current = perfect;
+  if (perfect > (sd.best || 0)) sd.best = perfect;
   saveStreakData(sd);
   return sd;
 }
@@ -993,7 +1026,8 @@ function render() {
 
   // Streak
   const sd = recalcStreak();
-  document.getElementById('streakCount').textContent = sd.current;
+  document.getElementById('loggedStreak').textContent = sd.logged;
+  document.getElementById('perfectStreak').textContent = sd.current;
 
   // Daily Message
   const m = document.getElementById('dailyMsg');
@@ -1009,7 +1043,7 @@ function render() {
 function showCeleb(sd) {
   const o = document.createElement('div'); o.className = 'overlay';
   const p = document.createElement('div'); p.className = 'celebration';
-  p.innerHTML = `<div class="emoji">✅</div><div class="title">Day Complete!</div><div class="sub">🔥 Streak: ${sd.current} day${sd.current !== 1 ? 's' : ''}</div>`;
+  p.innerHTML = `<div class="emoji">✅</div><div class="title">Day Complete!</div><div class="sub">⭐ Perfect streak: ${sd.current} day${sd.current !== 1 ? 's' : ''}</div>`;
   document.body.appendChild(o); document.body.appendChild(p);
   const x = () => { o.remove(); p.remove(); };
   o.addEventListener('click', x); p.addEventListener('click', x); setTimeout(x, 3000);
