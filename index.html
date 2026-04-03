@@ -456,7 +456,10 @@ const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const DAY_FULL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
 // ============ DATE HELPERS ============
-function getToday() { return new Date().toISOString().slice(0,10); }
+function getToday() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
 function getDow(dateStr) {
   if (!dateStr) return new Date().getDay();
   return new Date(dateStr + 'T12:00:00').getDay();
