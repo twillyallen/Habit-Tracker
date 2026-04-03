@@ -460,9 +460,14 @@ function getToday() {
   const d = new Date();
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 }
+function toLocalDateStr(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
 function getDow(dateStr) {
   if (!dateStr) return new Date().getDay();
-  return new Date(dateStr + 'T12:00:00').getDay();
+  const [y,m,d] = dateStr.split('-').map(Number);
+  return new Date(y, m-1, d).getDay();
 }
 
 function getWeekDates() {
@@ -470,16 +475,16 @@ function getWeekDates() {
   const today = now.getDay(); // 0=Sun
   const dates = [];
   for (let i = 0; i < 7; i++) {
-    const d = new Date(now);
-    d.setDate(now.getDate() - today + i);
-    dates.push(d.toISOString().slice(0,10));
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - today + i);
+    dates.push(toLocalDateStr(d));
   }
   return dates;
 }
 
 function formatDate(dateStr) {
-  const d = new Date(dateStr + 'T12:00:00');
-  return d.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+  const [y,m,d] = dateStr.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  return dt.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
 }
 
 // ============ ROUTINES (based on day-of-week) ============
@@ -561,7 +566,6 @@ function recalcStreak() {
   const sd = getStreakData();
   let streak = 0;
   const today = getToday();
-  const d = new Date();
 
   // Check if today is complete — if so, include it
   if (isDayComplete(today)) {
@@ -569,7 +573,7 @@ function recalcStreak() {
     let check = new Date();
     check.setDate(check.getDate() - 1);
     while (true) {
-      const ds = check.toISOString().slice(0,10);
+      const ds = toLocalDateStr(check);
       if (isDayComplete(ds)) { streak++; check.setDate(check.getDate() - 1); }
       else break;
     }
@@ -578,7 +582,7 @@ function recalcStreak() {
     let check = new Date();
     check.setDate(check.getDate() - 1);
     while (true) {
-      const ds = check.toISOString().slice(0,10);
+      const ds = toLocalDateStr(check);
       if (isDayComplete(ds)) { streak++; check.setDate(check.getDate() - 1); }
       else break;
     }
