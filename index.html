@@ -59,13 +59,24 @@ body {
 }
 
 /* ---- Day Selector ---- */
-.day-selector { display:flex; justify-content:center; gap:6px; margin:12px 0 4px; }
-.day-pill {
-  width:42px; height:36px; border-radius:10px; border:1px solid var(--border);
-  background:var(--surface); color:var(--text-dim); font-size:12px; font-weight:600;
+.week-nav { display:flex; align-items:center; justify-content:center; gap:4px; margin:12px 0 4px; position:relative; overflow:hidden; }
+.week-arrow {
+  width:28px; height:36px; border-radius:8px; border:1px solid var(--border);
+  background:var(--surface); color:var(--text-dim); font-size:14px;
   display:flex; align-items:center; justify-content:center; cursor:pointer;
-  transition:all 0.2s; font-family:'DM Sans',sans-serif;
+  transition:all 0.2s; flex-shrink:0; font-family:'DM Sans',sans-serif;
 }
+.week-arrow:active { transform:scale(0.93); background:var(--surface-hover); }
+.week-arrow.disabled { opacity:0.2; pointer-events:none; }
+.day-selector-track { overflow:hidden; position:relative; }
+.day-selector { display:flex; justify-content:center; gap:6px; transition:transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+.day-pill {
+  width:40px; height:36px; border-radius:10px; border:1px solid var(--border);
+  background:var(--surface); color:var(--text-dim); font-size:12px; font-weight:600;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;
+  transition:all 0.2s; font-family:'DM Sans',sans-serif; flex-shrink:0; gap:1px;
+}
+.day-pill .day-num { font-size:9px; font-weight:400; opacity:0.6; }
 .day-pill:active { transform:scale(0.95); }
 .day-pill.today { border-color:var(--accent); color:var(--accent); background:var(--accent-glow); }
 .day-pill.selected { border-color:var(--green); color:var(--green); background:var(--green-glow); }
@@ -73,9 +84,11 @@ body {
 .day-pill.future { opacity:0.3; pointer-events:none; }
 .day-pill.has-data { position:relative; }
 .day-pill.has-data::after {
-  content:''; position:absolute; bottom:3px; width:4px; height:4px;
+  content:''; position:absolute; bottom:2px; width:4px; height:4px;
   border-radius:50%; background:var(--green);
 }
+.week-label { text-align:center; font-size:11px; color:var(--text-dim); margin-top:4px; font-weight:500; opacity:0.7; }
+.week-label.current-week { opacity:0; height:0; margin:0; }
 
 .date-label { font-size:13px; color:var(--text-dim); margin-top:6px; font-weight:500; text-align:center; }
 .day-tag {
@@ -241,6 +254,39 @@ body {
 .overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:99; opacity:0; animation:fadeIn 0.2s forwards; }
 @keyframes fadeIn { to{opacity:1} }
 
+/* ---- Weekly Report Card ---- */
+.report-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; margin-bottom:14px; overflow:hidden; }
+.report-header { display:flex; align-items:center; justify-content:space-between; padding:14px 16px 4px; cursor:pointer; }
+.report-header .section-title { display:flex; align-items:center; gap:6px; }
+.report-toggle { font-size:12px; color:var(--text-dim); transition:transform 0.3s; }
+.report-toggle.open { transform:rotate(180deg); }
+.report-body { max-height:0; overflow:hidden; transition:max-height 0.4s cubic-bezier(0.4,0,0.2,1); }
+.report-body.open { max-height:800px; }
+.report-content { padding:8px 16px 16px; }
+.report-stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+.report-stat {
+  background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:12px;
+  padding:12px; text-align:center;
+}
+.report-stat .stat-value { font-size:22px; font-weight:700; margin-bottom:2px; }
+.report-stat .stat-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim); }
+.report-stat.sleep .stat-value { color:var(--orange); }
+.report-stat.water .stat-value { color:var(--water); }
+.report-stat.routine .stat-value { color:var(--green); }
+.report-stat.skin .stat-value { color:var(--purple); }
+.skin-trend { margin-top:4px; }
+.skin-trend-bar { display:flex; gap:4px; align-items:flex-end; height:40px; margin-top:6px; }
+.skin-trend-day {
+  flex:1; border-radius:4px 4px 0 0; transition:height 0.4s; min-height:4px;
+  position:relative;
+}
+.skin-trend-day .day-label { position:absolute; bottom:-16px; left:50%; transform:translateX(-50%); font-size:9px; color:var(--text-dim); font-weight:500; }
+.skin-trend-legend { display:flex; justify-content:space-between; margin-top:20px; font-size:10px; color:var(--text-dim); font-weight:500; }
+.report-grade { text-align:center; margin-top:12px; padding:12px; border-radius:12px; background:rgba(255,255,255,0.02); border:1px solid var(--border); }
+.report-grade .grade { font-size:28px; font-weight:700; }
+.report-grade .grade-label { font-size:12px; color:var(--text-dim); font-weight:500; margin-top:2px; }
+.no-data-msg { text-align:center; font-size:13px; color:var(--text-dim); padding:16px 0; font-weight:500; }
+
 /* ---- Reset ---- */
 .reset-row { text-align:center; padding-bottom:28px; }
 .reset-btn { background:none; border:none; color:var(--text-dim); font-size:12px; font-family:'DM Sans',sans-serif; cursor:pointer; padding:8px 16px; opacity:0.5; }
@@ -266,8 +312,15 @@ body.past-view .reset-btn { pointer-events:none; }
   <h1>LockedIn</h1>
 </div>
 
-<!-- Day Selector -->
-<div class="day-selector" id="daySelector"></div>
+<!-- Day Selector with Week Nav -->
+<div class="week-nav" id="weekNav">
+  <button class="week-arrow" id="prevWeek" onclick="changeWeek(-1)">‹</button>
+  <div class="day-selector-track" id="daySelectorTrack">
+    <div class="day-selector" id="daySelector"></div>
+  </div>
+  <button class="week-arrow" id="nextWeek" onclick="changeWeek(1)">›</button>
+</div>
+<div class="week-label" id="weekLabel"></div>
 <div class="date-label" id="dateLabel"></div>
 <div class="day-tag-wrap"><div class="day-tag" id="dayTag"></div></div>
 <div class="viewing-past" id="viewingPast">Viewing a past day (read-only)</div>
@@ -446,6 +499,17 @@ body.past-view .reset-btn { pointer-events:none; }
   <div class="checklist" id="eveningList"></div>
 </div>
 
+<!-- Weekly Report Card -->
+<div class="report-card" id="reportCard">
+  <div class="report-header" onclick="toggleReport()">
+    <span class="section-title">📊 Weekly Report Card</span>
+    <span class="report-toggle" id="reportToggle">▼</span>
+  </div>
+  <div class="report-body" id="reportBody">
+    <div class="report-content" id="reportContent"></div>
+  </div>
+</div>
+
 <div class="reset-row"><button class="reset-btn" onclick="resetDay()">Reset today</button></div>
 
 <script>
@@ -471,15 +535,25 @@ function getDow(dateStr) {
   return new Date(y, m-1, d).getDay();
 }
 
-function getWeekDates() {
+function getWeekDates(offset) {
+  if (offset === undefined) offset = weekOffset;
   const now = new Date();
   const today = now.getDay(); // 0=Sun
   const dates = [];
   for (let i = 0; i < 7; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - today + i);
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - today + i + (offset * 7));
     dates.push(toLocalDateStr(d));
   }
   return dates;
+}
+
+function getWeekLabel(offset) {
+  if (offset === 0) return '';
+  const dates = getWeekDates(offset);
+  const start = new Date(dates[0].replace(/-/g,'/'));
+  const end = new Date(dates[6].replace(/-/g,'/'));
+  const opts = { month:'short', day:'numeric' };
+  return start.toLocaleDateString('en-US', opts) + ' – ' + end.toLocaleDateString('en-US', opts);
 }
 
 function formatDate(dateStr) {
@@ -489,31 +563,43 @@ function formatDate(dateStr) {
 }
 
 // ============ ROUTINES (based on day-of-week) ============
+// dow: 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+// PanOxyl AM: Thu(4), Sun(0)
+// Water rinse AM: Mon(1), Tue(2), Wed(3), Fri(5), Sat(6)
 function getMorning(dow) {
   if (dow === undefined) dow = getDow(viewingDate);
   const items = [];
-  if ([1,3,5].includes(dow)) items.push({id:'am_panoxyl',label:'PanOxyl Foaming Wash',sub:'Benzoyl peroxide — M/W/F',icon:''});
-  items.push({id:'am_moist',label:'Moisturizer',sub:'CeraVe Moisturizing Cream',icon:''});
+  if ([0,4].includes(dow)) {
+    items.push({id:'am_panoxyl',label:'PanOxyl Foam Wash',sub:'Benzoyl peroxide — Thu & Sun',icon:''});
+  } else {
+    items.push({id:'am_rinse',label:'Water Rinse',sub:'No cleanser!',icon:''});
+  }
+  items.push({id:'am_moist',label:'CeraVe Moisturizer',sub:'Moisturizing Cream',icon:''});
   items.push({id:'am_spf',label:'Sunscreen',sub:'SPF 30+',icon:''});
   return items;
 }
 
+// Differin Night: Mon(1), Thu(4), Sun(0)
+// BHA Night: Wed(3)
+// Recovery Night (no actives): Tue(2), Fri(5), Sat(6)
 function getEvening(dow) {
   if (dow === undefined) dow = getDow(viewingDate);
-  const items = [{id:'pm_cleanser',label:'Neutragena Gentle Cleanser',sub:'Foaming Formula',icon:''}];
-  if (dow === 0) {
-    items.push({id:'pm_paulas',label:"Paula's Choice Liquid Exfoliant",sub:'Sunday night exfoliation',icon:''});
-  } else {
-    items.push({id:'pm_differin',label:'Differin Adapalene Gel',sub:'Retinoid — Mon–Sat',icon:''});
+  const items = [{id:'pm_cleanser',label:'Gentle Foaming Wash',sub:'Cleanser',icon:''}];
+  if ([1,4,0].includes(dow)) {
+    items.push({id:'pm_differin',label:'Adapalene Gel',sub:'Differin',icon:''});
+  } else if (dow === 3) {
+    items.push({id:'pm_paulas',label:"Paula's Choice BHA",sub:'Exfoliant — Wait 20 min before moisturizer',icon:''});
   }
-  items.push({id:'pm_moist',label:'Moisturizer',sub:'CeraVe Moisturizing Cream',icon:''});
+  // Recovery nights (Tue, Fri, Sat) skip straight to moisturizer
+  items.push({id:'pm_moist',label:'CeraVe Moisturizer',sub:'Moisturizing Cream',icon:''});
   return items;
 }
 
 function getDayTag(dow) {
-  if (dow === 0) return 'Exfoliant Night';
-  if ([1,3,5].includes(dow)) return 'PanOxyl Day';
-  return 'Gentle Day';
+  if ([0,4].includes(dow)) return 'PanOxyl · Differin';
+  if (dow === 3) return 'BHA Night';
+  if (dow === 1) return 'Differin Night';
+  return 'Recovery Night';
 }
 
 // ============ STATE MANAGEMENT ============
@@ -653,8 +739,191 @@ let viewingDate = getToday();
 let S = loadState(viewingDate) || defaultState(viewingDate);
 let celeb = false;
 let nightBannerShown = false;
+let weekOffset = 0; // 0 = current week, -1 = last week, etc.
 
 function isViewingToday() { return viewingDate === getToday(); }
+
+function changeWeek(dir) {
+  const newOffset = weekOffset + dir;
+  if (newOffset > 0) return; // can't go into the future
+  weekOffset = newOffset;
+  // When navigating weeks, select the most recent valid day in that week
+  const week = getWeekDates(weekOffset);
+  const today = getToday();
+  if (weekOffset === 0) {
+    switchDay(today);
+  } else {
+    // Select last day of that past week (Saturday) or the latest day with data
+    const lastDay = week[6] <= today ? week[6] : today;
+    switchDay(lastDay);
+  }
+}
+
+// Swipe detection on the week nav
+function initWeekSwipe() {
+  const nav = document.getElementById('weekNav');
+  let swipeState = null;
+
+  nav.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    swipeState = { startX: t.clientX, startY: t.clientY, locked: null };
+  }, { passive: true });
+
+  nav.addEventListener('touchmove', (e) => {
+    if (!swipeState) return;
+    const t = e.touches[0];
+    const dx = t.clientX - swipeState.startX;
+    const dy = Math.abs(t.clientY - swipeState.startY);
+    if (!swipeState.locked) {
+      if (Math.abs(dx) < 15 && dy < 15) return;
+      swipeState.locked = Math.abs(dx) > dy ? 'horiz' : 'vert';
+    }
+    if (swipeState.locked === 'horiz') e.preventDefault();
+  }, { passive: false });
+
+  nav.addEventListener('touchend', (e) => {
+    if (!swipeState || swipeState.locked !== 'horiz') { swipeState = null; return; }
+    const t = e.changedTouches[0];
+    const dx = t.clientX - swipeState.startX;
+    if (Math.abs(dx) > 40) {
+      changeWeek(dx > 0 ? -1 : 1); // swipe right = prev week, left = next week
+    }
+    swipeState = null;
+  });
+}
+
+// ============ WEEKLY REPORT CARD ============
+let reportOpen = false;
+
+function toggleReport() {
+  reportOpen = !reportOpen;
+  document.getElementById('reportBody').classList.toggle('open', reportOpen);
+  document.getElementById('reportToggle').classList.toggle('open', reportOpen);
+  if (reportOpen) renderReport();
+}
+
+function getReportWeekDates() {
+  // Report always shows the week currently being viewed
+  return getWeekDates(weekOffset);
+}
+
+function renderReport() {
+  const el = document.getElementById('reportContent');
+  const week = getReportWeekDates();
+  const today = getToday();
+
+  // Collect data from the week
+  let sleepTotal = 0, sleepCount = 0;
+  let waterTotal = 0, waterCount = 0;
+  let routineDone = 0, routineTotal = 0;
+  let skinValues = [];
+  let daysLogged = 0;
+  const skinByDay = [];
+
+  week.forEach((ds, i) => {
+    if (ds > today) { skinByDay.push(null); return; }
+    const state = loadState(ds);
+    if (!state) { skinByDay.push(null); return; }
+
+    const logged = isDayLogged(ds);
+    if (logged) daysLogged++;
+
+    if (state.sleep !== null) { sleepTotal += state.sleep; sleepCount++; }
+    if (state.water > 0) { waterTotal += state.water; waterCount++; }
+
+    // Routine %
+    const dow = getDow(ds);
+    const am = getMorning(dow), pm = getEvening(dow);
+    const all = [...am, ...pm];
+    routineTotal += all.length;
+    routineDone += all.filter(item => state.checks[item.id]).length;
+
+    if (state.skinClarity !== null) {
+      skinValues.push(state.skinClarity);
+      skinByDay.push(state.skinClarity);
+    } else {
+      skinByDay.push(null);
+    }
+  });
+
+  if (daysLogged === 0) {
+    el.innerHTML = '<div class="no-data-msg">No data logged this week yet.</div>';
+    return;
+  }
+
+  const avgSleep = sleepCount > 0 ? (sleepTotal / sleepCount).toFixed(1) : '—';
+  const avgWater = waterCount > 0 ? Math.round(waterTotal / waterCount) : '—';
+  const routinePct = routineTotal > 0 ? Math.round((routineDone / routineTotal) * 100) : 0;
+  const avgSkin = skinValues.length > 0 ? (skinValues.reduce((a,b)=>a+b,0) / skinValues.length) : null;
+
+  // Skin Health trend — compare first half to second half of available data
+  let skinTrendText = '—';
+  let skinTrendColor = 'var(--text-dim)';
+  if (skinValues.length >= 2) {
+    const mid = Math.floor(skinValues.length / 2);
+    const firstHalf = skinValues.slice(0, mid);
+    const secondHalf = skinValues.slice(mid);
+    const avg1 = firstHalf.reduce((a,b)=>a+b,0) / firstHalf.length;
+    const avg2 = secondHalf.reduce((a,b)=>a+b,0) / secondHalf.length;
+    const diff = avg2 - avg1;
+    if (diff > 0.5) { skinTrendText = '↑ Improving'; skinTrendColor = 'var(--green)'; }
+    else if (diff < -0.5) { skinTrendText = '↓ Declining'; skinTrendColor = 'var(--red)'; }
+    else { skinTrendText = '→ Steady'; skinTrendColor = 'var(--orange)'; }
+  }
+
+  // Overall grade
+  let gradeScore = 0;
+  let gradeFactors = 0;
+  if (sleepCount > 0) { gradeScore += Math.min((parseFloat(avgSleep) / 8) * 100, 100); gradeFactors++; }
+  if (waterCount > 0) { gradeScore += Math.min((avgWater / WATER_GOAL) * 100, 100); gradeFactors++; }
+  if (routineTotal > 0) { gradeScore += routinePct; gradeFactors++; }
+  if (avgSkin !== null) { gradeScore += (avgSkin / 10) * 100; gradeFactors++; }
+
+  const overall = gradeFactors > 0 ? Math.round(gradeScore / gradeFactors) : 0;
+  const grade = overall >= 90 ? 'A' : overall >= 80 ? 'B+' : overall >= 70 ? 'B' : overall >= 60 ? 'C+' : overall >= 50 ? 'C' : 'D';
+  const gradeColor = overall >= 80 ? 'var(--green)' : overall >= 60 ? 'var(--orange)' : 'var(--red)';
+
+  // Build skin trend bars
+  const skinBarsHTML = skinByDay.map((val, i) => {
+    if (val === null) return `<div class="skin-trend-day" style="height:4px;background:var(--border);"><span class="day-label">${DAY_NAMES[i]}</span></div>`;
+    const h = Math.max(10, (val / 10) * 100);
+    const barColor = val >= 7 ? 'var(--green)' : val >= 4 ? 'var(--orange)' : 'var(--red)';
+    return `<div class="skin-trend-day" style="height:${h}%;background:${barColor};"><span class="day-label">${DAY_NAMES[i]}</span></div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="report-stats">
+      <div class="report-stat sleep">
+        <div class="stat-value">${avgSleep}<span style="font-size:13px;font-weight:500;"> hrs</span></div>
+        <div class="stat-label">Avg Sleep</div>
+      </div>
+      <div class="report-stat water">
+        <div class="stat-value">${avgWater}<span style="font-size:13px;font-weight:500;"> oz</span></div>
+        <div class="stat-label">Avg Water</div>
+      </div>
+      <div class="report-stat routine">
+        <div class="stat-value">${routinePct}%</div>
+        <div class="stat-label">Routine Done</div>
+      </div>
+      <div class="report-stat skin">
+        <div class="stat-value">${avgSkin !== null ? avgSkin.toFixed(1) : '—'}<span style="font-size:13px;font-weight:500;">/10</span></div>
+        <div class="stat-label">Avg Skin Clarity</div>
+      </div>
+    </div>
+    <div class="skin-trend">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:12px;font-weight:600;color:var(--text-dim);">Skin Clarity Trend</span>
+        <span style="font-size:12px;font-weight:700;color:${skinTrendColor};">${skinTrendText}</span>
+      </div>
+      <div class="skin-trend-bar">${skinBarsHTML}</div>
+      <div class="skin-trend-legend"><span>Sun</span><span>Sat</span></div>
+    </div>
+    <div class="report-grade">
+      <div class="grade" style="color:${gradeColor};">${grade}</div>
+      <div class="grade-label">Weekly Grade · ${daysLogged}/7 days logged</div>
+    </div>
+  `;
+}
 
 function switchDay(dateStr) {
   // Save current state first
@@ -664,6 +933,12 @@ function switchDay(dateStr) {
   celeb = false;
   nightBannerShown = false;
   render();
+}
+
+// Navigate to today (used by week nav or quick return)
+function goToToday() {
+  weekOffset = 0;
+  switchDay(getToday());
 }
 
 // ============ WATER with UNDO ============
@@ -774,13 +1049,14 @@ function initSliders() {
 // ============ RENDER ============
 function renderDaySelector() {
   const el = document.getElementById('daySelector');
-  const week = getWeekDates();
+  const week = getWeekDates(weekOffset);
   const today = getToday();
   el.innerHTML = '';
   week.forEach((ds, i) => {
     const pill = document.createElement('div');
     pill.className = 'day-pill';
-    pill.textContent = DAY_NAMES[i];
+    const dayNum = ds.split('-')[2].replace(/^0/,'');
+    pill.innerHTML = `<span>${DAY_NAMES[i]}</span><span class="day-num">${dayNum}</span>`;
     if (ds === today) pill.classList.add('today');
     if (ds === viewingDate) pill.classList.add('selected');
     if (ds > today) pill.classList.add('future');
@@ -788,6 +1064,20 @@ function renderDaySelector() {
     pill.addEventListener('click', () => { if (ds <= today) switchDay(ds); });
     el.appendChild(pill);
   });
+
+  // Week label
+  const weekLabelEl = document.getElementById('weekLabel');
+  const label = getWeekLabel(weekOffset);
+  if (label) {
+    weekLabelEl.textContent = label;
+    weekLabelEl.className = 'week-label';
+  } else {
+    weekLabelEl.className = 'week-label current-week';
+    weekLabelEl.textContent = '';
+  }
+
+  // Arrow states
+  document.getElementById('nextWeek').classList.toggle('disabled', weekOffset >= 0);
 
   // Viewing past indicator
   const pastEl = document.getElementById('viewingPast');
@@ -1038,12 +1328,15 @@ function render() {
   } else if (pct >= 75) { m.textContent = 'Almost there. Finish strong!'; m.className = 'daily-msg'; }
   else if (pct >= 40) { m.textContent = 'Good progress. Keep it going!'; m.className = 'daily-msg'; }
   else { m.textContent = "Let's get it started!"; m.className = 'daily-msg'; }
+
+  // Re-render report if open
+  if (reportOpen) renderReport();
 }
 
 function showCeleb(sd) {
   const o = document.createElement('div'); o.className = 'overlay';
   const p = document.createElement('div'); p.className = 'celebration';
-  p.innerHTML = `<div class="emoji">✅</div><div class="title">Day Complete!</div><div class="sub">⭐ Perfect streak: ${sd.current} day${sd.current !== 1 ? 's' : ''}</div>`;
+  p.innerHTML = `<div class="emoji">✅</div><div class="title">Day Complete!</div><div class="sub">Perfect streak: ${sd.current} day${sd.current !== 1 ? 's' : ''}</div>`;
   document.body.appendChild(o); document.body.appendChild(p);
   const x = () => { o.remove(); p.remove(); };
   o.addEventListener('click', x); p.addEventListener('click', x); setTimeout(x, 3000);
@@ -1079,6 +1372,7 @@ function scheduleReset() {
 
 // ============ INIT ============
 initSliders();
+initWeekSwipe();
 render();
 scheduleReset();
 </script>
