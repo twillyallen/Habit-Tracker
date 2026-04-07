@@ -1033,11 +1033,9 @@ function renderReport() {
   // Collect data from the week
   let sleepTotal = 0, sleepCount = 0;
   let waterTotal = 0, waterCount = 0;
-  let routineDone = 0, routineTotal = 0;
+  let dailyPctSum = 0, dailyPctCount = 0;
   let skinValues = [];
   let daysLogged = 0;
-  const skinByDay = [];
-
   week.forEach((ds, i) => {
     if (ds > today) { skinByDay.push(null); return; }
     const state = loadState(ds);
@@ -1052,11 +1050,8 @@ function renderReport() {
     // Routine % — only count days the user actually logged something,
     // so empty/legacy records can't drag the weekly average down.
     if (logged) {
-      const dow = getDow(ds);
-      const am = getMorning(dow), pm = getEvening(dow);
-      const all = [...am, ...pm];
-      routineTotal += all.length;
-      routineDone += all.filter(item => state.checks[item.id]).length;
+      dailyPctSum += calcProg(state, ds);
+      dailyPctCount++;
     }
 
     if (state.skinClarity !== null) {
@@ -1074,7 +1069,7 @@ function renderReport() {
 
   const avgSleep = sleepCount > 0 ? (sleepTotal / sleepCount).toFixed(1) : '—';
   const avgWater = waterCount > 0 ? Math.round(waterTotal / waterCount) : '—';
-  const routinePct = routineTotal > 0 ? Math.round((routineDone / routineTotal) * 100) : 0;
+  const avgDailyPct = dailyPctCount > 0 ? Math.round(dailyPctSum / dailyPctCount) : 0;
   const avgSkin = skinValues.length > 0 ? (skinValues.reduce((a,b)=>a+b,0) / skinValues.length) : null;
 
   // Skin Health trend — compare first half to second half of available data
@@ -1098,7 +1093,7 @@ function renderReport() {
   let gradeFactors = 0;
   if (sleepCount > 0) { gradeScore += Math.min((parseFloat(avgSleep) / 8) * 100, 100); gradeFactors++; }
   if (waterCount > 0) { gradeScore += Math.min((avgWater / WATER_GOAL) * 100, 100); gradeFactors++; }
-  if (routineTotal > 0) { gradeScore += routinePct; gradeFactors++; }
+  if (dailyPctCount > 0) { gradeScore += avgDailyPct; gradeFactors++; }
   if (avgSkin !== null) { gradeScore += (avgSkin / 10) * 100; gradeFactors++; }
 
   const overall = gradeFactors > 0 ? Math.round(gradeScore / gradeFactors) : 0;
@@ -1125,8 +1120,8 @@ function renderReport() {
         <div class="stat-label">Avg Water</div>
       </div>
       <div class="report-stat routine">
-        <div class="stat-value">${routinePct}%</div>
-        <div class="stat-label">Routine Done</div>
+        <div class="stat-value">${avgDailyPct}%</div>
+        <div class="stat-label">Avg Completion</div>
       </div>
       <div class="report-stat skin">
         <div class="stat-value">${avgSkin !== null ? avgSkin.toFixed(1) : '—'}<span style="font-size:13px;font-weight:500;">/10</span></div>
