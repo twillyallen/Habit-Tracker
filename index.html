@@ -602,7 +602,7 @@ const CONFIG = {
   // ---- VERSION ----
   // Bump this when you push an update so you can confirm on your phone
   // that the new version actually loaded. Visible at the bottom of the app.
-  version: '1.1.0',
+  version: '1.1.1',
 
   // ---- HYDRATION ----
   water: {
@@ -1647,64 +1647,6 @@ function migrateOldData() {
     } catch(e) { /* skip bad entries */ }
   }
   localStorage.setItem('ss_migrated_v2', '1');
-}
-
-// ============ [BACKUP / RESTORE] ============
-// Exports every ss_* key to a JSON file. Use this before re-installing
-// the home-screen shortcut, switching phones, or any time you want a
-// safety net. Restoring will MERGE with existing data — your current
-// progress is preserved unless a backup entry overwrites the same date.
-function exportBackup() {
-  const data = {};
-  for (let i = 0; i < localStorage.length; i++) {
-    const k = localStorage.key(i);
-    if (k && k.startsWith('ss_')) data[k] = localStorage.getItem(k);
-  }
-  const payload = {
-    app: 'LockedIn',
-    version: CONFIG.version,
-    exportedAt: new Date().toISOString(),
-    data: data,
-  };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'lockedin-backup-' + getToday() + '.json';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-function importBackup() {
-  const input = document.getElementById('importFileInput');
-  input.value = ''; // reset so re-selecting same file fires onchange
-  input.onchange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        const payload = JSON.parse(ev.target.result);
-        if (!payload.data || typeof payload.data !== 'object') {
-          alert('That doesn\'t look like a LockedIn backup file.');
-          return;
-        }
-        const count = Object.keys(payload.data).length;
-        if (!confirm('Restore ' + count + ' entries from backup? Existing data for the same dates will be overwritten.')) return;
-        Object.entries(payload.data).forEach(([k, v]) => {
-          if (k.startsWith('ss_')) localStorage.setItem(k, v);
-        });
-        alert('Restored ' + count + ' entries. Reloading...');
-        location.reload();
-      } catch (err) {
-        alert('Could not read backup file: ' + err.message);
-      }
-    };
-    reader.readAsText(file);
-  };
-  input.click();
 }
 
 // ============ [INIT] ============
