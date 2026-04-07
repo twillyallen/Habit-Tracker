@@ -6,11 +6,43 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="LockedIn">
+<!-- Cache control: tell iOS PWA shell not to serve stale HTML on relaunch.
+     Without these, the standalone home-screen app will keep serving the
+     version that was cached the day you added it to your home screen,
+     which is why updates "disappear" until you re-add the shortcut. -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <link rel="apple-touch-icon" href="icon.png">
 <title>LockedIn</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=BJ+Cree&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&display=swap" rel="stylesheet">
 <style>
+/* ============================================================
+   LOCKEDIN STYLES — section map
+   ============================================================
+   Edit this file by section. Use Ctrl+F to jump:
+
+     [COLORS]            — all color tokens (edit here for theming)
+     [BASE]              — html/body resets
+     [HEADER]            — app title bar
+     [DAY SELECTOR]      — week nav + day pills
+     [STREAK]            — streak counters
+     [PROGRESS RING]     — daily completion ring + message
+     [SECTION CARDS]     — generic .section card styling
+     [CHECKLIST]         — morning/night routine items
+     [WATER]             — hydration card
+     [SLEEP]             — sleep card
+     [SLIDERS]           — severity sliders (skin/dairy/caffeine/alcohol)
+     [WORKOUT]           — yes/no workout buttons
+     [SLEEP QUALITY]     — sleep quality sub-slider
+     [BANNERS]           — morning greeting + night done banners
+     [CELEBRATION]       — 100% complete popup
+     [REPORT CARD]       — weekly report card
+     [RESET]             — reset button row
+   ============================================================ */
+
+/* ===== [COLORS] ============================================ */
 :root {
   --bg: #0e1117;
   --surface: #161b22;
@@ -33,6 +65,8 @@
   --purple-glow: rgba(188,140,255,0.12);
 }
 
+/* ===== [BASE] ============================================== */
+
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 
 html, body {
@@ -49,7 +83,7 @@ body {
   padding-top: max(env(safe-area-inset-top), 12px);
 }
 
-/* ---- Header ---- */
+/* ===== [HEADER] ============================================ */
 .header { text-align:center; padding:20px 0 6px; }
 .header h1 {
   font-family:'BJ Cree',sans-serif;
@@ -58,23 +92,23 @@ body {
   -webkit-background-clip:text; -webkit-text-fill-color:transparent;
 }
 
-/* ---- Day Selector ---- */
-.week-nav { display:flex; align-items:center; justify-content:center; gap:4px; margin:12px 0 4px; position:relative; overflow:hidden; }
+/* ===== [DAY SELECTOR] ====================================== */
+.week-nav { display:flex; align-items:center; justify-content:center; gap:6px; margin:12px 0 4px; position:relative; overflow:hidden; }
 .week-arrow {
-  width:28px; height:36px; border-radius:8px; border:1px solid var(--border);
+  width:26px; height:38px; border-radius:8px; border:1px solid var(--border);
   background:var(--surface); color:var(--text-dim); font-size:14px;
   display:flex; align-items:center; justify-content:center; cursor:pointer;
   transition:all 0.2s; flex-shrink:0; font-family:'DM Sans',sans-serif;
 }
 .week-arrow:active { transform:scale(0.93); background:var(--surface-hover); }
 .week-arrow.disabled { opacity:0.2; pointer-events:none; }
-.day-selector-track { overflow:hidden; position:relative; }
-.day-selector { display:flex; justify-content:center; gap:6px; transition:transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+.day-selector-track { flex:1; overflow:hidden; position:relative; min-width:0; }
+.day-selector { display:flex; gap:5px; transition:transform 0.3s cubic-bezier(0.4,0,0.2,1); }
 .day-pill {
-  width:40px; height:36px; border-radius:10px; border:1px solid var(--border);
+  flex:1; min-width:0; height:38px; border-radius:10px; border:1px solid var(--border);
   background:var(--surface); color:var(--text-dim); font-size:12px; font-weight:600;
   display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;
-  transition:all 0.2s; font-family:'DM Sans',sans-serif; flex-shrink:0; gap:1px;
+  transition:all 0.2s; font-family:'DM Sans',sans-serif; gap:1px;
 }
 .day-pill .day-num { font-size:9px; font-weight:400; opacity:0.6; }
 .day-pill:active { transform:scale(0.95); }
@@ -104,12 +138,12 @@ body {
 }
 .viewing-past.show { display:block; }
 
-/* ---- Streak ---- */
+/* ===== [STREAK] ============================================ */
 .streak-bar { display:flex; justify-content:center; gap:20px; margin:14px 0 16px; }
 .streak-item { display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--text-dim); }
 .streak-item .num { font-size:18px; font-weight:700; color:var(--gold); }
 
-/* ---- Progress Ring ---- */
+/* ===== [PROGRESS RING] ===================================== */
 .daily-progress { text-align:center; padding:10px 0 18px; }
 .ring-container { position:relative; width:96px; height:96px; margin:0 auto 8px; }
 .ring-container svg { width:96px; height:96px; transform:rotate(-90deg); }
@@ -119,14 +153,14 @@ body {
 .daily-msg { font-size:13px; color:var(--text-dim); font-weight:500; }
 .daily-msg.complete { color:var(--green); font-weight:600; }
 
-/* ---- Sections ---- */
+/* ===== [SECTION CARDS] ===================================== */
 .section { background:var(--surface); border:1px solid var(--border); border-radius:16px; margin-bottom:14px; overflow:hidden; }
 .section-header { display:flex; align-items:center; justify-content:space-between; padding:14px 16px 10px; }
 .section-title { font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:1.2px; color:var(--text-dim); }
 .section-badge { font-size:12px; font-weight:600; padding:3px 10px; border-radius:20px; background:var(--accent-glow); color:var(--accent); }
 .section-badge.done { background:var(--green-glow); color:var(--green); }
 
-/* ---- Checklist ---- */
+/* ===== [CHECKLIST] ========================================= */
 .checklist { padding:0 12px 12px; }
 .check-item { display:flex; align-items:center; gap:12px; padding:12px; border-radius:12px; cursor:pointer; transition:background 0.15s; -webkit-user-select:none; user-select:none; }
 .check-item:active { background:var(--surface-hover); }
@@ -141,7 +175,7 @@ body {
 .check-item.checked .check-sub { opacity:0.35; }
 .check-icon { font-size:20px; flex-shrink:0; }
 
-/* ---- Water ---- */
+/* ===== [WATER] ============================================= */
 .water-section { padding:0 16px 16px; }
 .water-visual { position:relative; height:110px; border-radius:14px; overflow:hidden; background:rgba(121,192,255,0.04); border:1px solid rgba(121,192,255,0.08); margin-bottom:14px; }
 .water-fill { position:absolute; bottom:0; left:0; right:0; background:linear-gradient(180deg,rgba(121,192,255,0.25),rgba(88,166,255,0.4)); transition:height 0.5s cubic-bezier(0.34,1.56,0.64,1); border-radius:0 0 13px 13px; }
@@ -167,7 +201,7 @@ body {
 .water-btn:active { transform:scale(0.95); background:var(--water-glow); }
 .water-btn.undo { color:var(--text-dim); font-size:12px; }
 
-/* ---- Sleep ---- */
+/* ===== [SLEEP] ============================================= */
 .sleep-section { padding:0 16px 16px; }
 .sleep-row { display:flex; align-items:center; gap:12px; }
 .sleep-value { font-size:32px; font-weight:700; min-width:56px; text-align:center; }
@@ -178,7 +212,7 @@ body {
 .sleep-btn.active { background:var(--orange-glow); border-color:var(--orange); color:var(--orange); }
 .sleep-msg { text-align:center; font-size:12px; color:var(--text-dim); margin-top:10px; font-weight:500; }
 
-/* ---- Severity Sliders ---- */
+/* ===== [SLIDERS] =========================================== */
 .slider-section { padding:0 16px 16px; }
 .slider-group { margin-bottom:16px; }
 .slider-group:last-child { margin-bottom:0; }
@@ -205,7 +239,7 @@ body {
 .slider-skin .slider-value.low { background:var(--red-glow); color:var(--red); }
 .slider-skin .slider-value.mid { background:var(--orange-glow); color:var(--orange); }
 
-/* ---- Workout Toggle ---- */
+/* ===== [WORKOUT] =========================================== */
 .workout-row { display:flex; align-items:center; gap:12px; padding:0 16px 16px; }
 .workout-btn {
   flex:1; height:48px; border-radius:12px; border:1px solid var(--border);
@@ -226,7 +260,7 @@ body {
 .sq-value.mid { background:var(--orange-glow); color:var(--orange); }
 .sq-value.bad { background:var(--red-glow); color:var(--red); }
 
-/* ---- Banners ---- */
+/* ===== [BANNERS] =========================================== */
 .greeting-banner {
   text-align:center; padding:16px 20px; margin-bottom:14px;
   background:var(--surface); border:1px solid var(--border); border-radius:16px;
@@ -245,7 +279,7 @@ body {
 .night-done-banner .night-text { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; color:var(--accent); }
 .night-done-banner .night-sub { font-size:13px; color:var(--text-dim); margin-top:4px; font-weight:500; }
 
-/* ---- Celebration ---- */
+/* ===== [CELEBRATION] ======================================= */
 @keyframes popIn { 0%{transform:translate(-50%,-50%) scale(0.5);opacity:0} 60%{transform:translate(-50%,-50%) scale(1.15)} 100%{transform:translate(-50%,-50%) scale(1);opacity:1} }
 .celebration { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.5); background:var(--surface); border:1px solid var(--green); border-radius:20px; padding:32px 40px; text-align:center; z-index:100; animation:popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards; box-shadow:0 0 60px rgba(63,185,80,0.2); }
 .celebration .emoji { font-size:40px; margin-bottom:8px; }
@@ -254,7 +288,7 @@ body {
 .overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:99; opacity:0; animation:fadeIn 0.2s forwards; }
 @keyframes fadeIn { to{opacity:1} }
 
-/* ---- Weekly Report Card ---- */
+/* ===== [REPORT CARD] ======================================= */
 .report-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; margin-bottom:14px; overflow:hidden; }
 .report-header { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; cursor:pointer; }
 .report-header .section-title { display:flex; align-items:center; gap:6px; }
@@ -288,8 +322,17 @@ body {
 .no-data-msg { text-align:center; font-size:13px; color:var(--text-dim); padding:16px 0; font-weight:500; }
 
 /* ---- Reset ---- */
-.reset-row { text-align:center; padding-bottom:28px; }
+.reset-row { text-align:center; padding-bottom:8px; padding-top:4px; }
 .reset-btn { background:none; border:none; color:var(--text-dim); font-size:12px; font-family:'DM Sans',sans-serif; cursor:pointer; padding:8px 16px; opacity:0.5; }
+.footer-row { text-align:center; padding-bottom:32px; padding-top:8px; }
+.footer-row .footer-btns { display:flex; gap:8px; justify-content:center; margin-bottom:10px; }
+.footer-row .footer-btn {
+  background:var(--surface); border:1px solid var(--border); color:var(--text-dim);
+  font-size:11px; font-family:'DM Sans',sans-serif; cursor:pointer;
+  padding:7px 14px; border-radius:8px; font-weight:600;
+}
+.footer-row .footer-btn:active { background:var(--surface-hover); }
+.footer-row .version { font-size:10px; color:var(--text-dim); opacity:0.5; font-weight:500; }
 
 /* ---- Read-only overlay for past days ---- */
 .readonly-cover {
@@ -297,13 +340,10 @@ body {
   background:transparent; pointer-events:none;
 }
 .readonly-cover.active { display:block; pointer-events:auto; }
-body.past-view .section { opacity:0.85; }
-body.past-view .water-btn,
-body.past-view .sleep-btn,
-body.past-view .check-item,
-body.past-view .slider-track,
-body.past-view .workout-btn,
-body.past-view .reset-btn { pointer-events:none; }
+body.past-view .section { opacity:0.92; }
+/* past-view used to disable everything via pointer-events:none.
+   We now allow editing past days, so the only visual cue is the
+   slight opacity dim above plus the banner near the top. */
 </style>
 </head>
 <body>
@@ -323,7 +363,7 @@ body.past-view .reset-btn { pointer-events:none; }
 <div class="week-label" id="weekLabel"></div>
 <div class="date-label" id="dateLabel"></div>
 <div class="day-tag-wrap"><div class="day-tag" id="dayTag"></div></div>
-<div class="viewing-past" id="viewingPast">Viewing a past day (read-only)</div>
+<div class="viewing-past" id="viewingPast">✏️ Editing a past day</div>
 
 <!-- Streak -->
 <div class="streak-bar">
@@ -510,17 +550,213 @@ body.past-view .reset-btn { pointer-events:none; }
   </div>
 </div>
 
-<div class="reset-row"><button class="reset-btn" onclick="resetDay()">Reset today</button></div>
+<div class="reset-row"><button class="reset-btn" id="resetBtn" onclick="resetDay()">Reset today</button></div>
+<div class="footer-row">
+  <div class="footer-btns">
+    <button class="footer-btn" onclick="exportBackup()">⬇ Backup</button>
+    <button class="footer-btn" onclick="importBackup()">⬆ Restore</button>
+  </div>
+  <div class="version" id="versionLabel"></div>
+</div>
+<input type="file" id="importFileInput" accept="application/json" style="display:none">
 
 <script>
-// ============ CONSTANTS ============
-const WATER_GOAL = 130;
-const FLASK = 40;
+/* ============================================================
+   LOCKEDIN SCRIPT — section map
+   ============================================================
+   Use Ctrl+F to jump:
+
+     [CONFIG]            — ALL editable text, thresholds, routines
+     [DERIVED]           — auto-derived constants (don't edit)
+     [DATE HELPERS]      — getToday, getDow, getWeekDates, etc.
+     [ROUTINES]          — getMorning/getEvening/getDayTag (read CONFIG)
+     [STATE]             — load/save/default state, hasAnyData
+     [STREAK]            — streak tracking
+     [PROGRESS CALC]     — calcProg
+     [APP STATE]         — module-level vars (S, viewingDate, etc.)
+     [WEEK NAV]          — changeWeek, swipe handling
+     [REPORT CARD]       — toggleReport, renderReport
+     [DAY SWITCHING]     — switchDay, goToToday
+     [WATER]             — addWater, undoWater
+     [TRACKERS]          — setTracker, setWorkout
+     [SLIDERS INIT]      — touch handlers
+     [RENDER]            — all render* functions + main render()
+     [CELEBRATION]       — showCeleb popup
+     [RESET / MIDNIGHT]  — resetDay, scheduleReset
+     [MIGRATION]         — one-time data migrations
+     [INIT]              — bootstrap on load
+   ============================================================ */
+
+// ============================================================
+// ============ [CONFIG] — EDIT EVERYTHING HERE ===============
+// ============================================================
+// All user-facing text, thresholds, goals, and routine definitions
+// live in this one object. To change a caption, color name, goal,
+// routine item, or grade cutoff — edit it here and nowhere else.
+//
+// Colors themselves are CSS variables (search ":root" near the top
+// of the <style> block).
+// ============================================================
+const CONFIG = {
+
+  // ---- VERSION ----
+  // Bump this when you push an update so you can confirm on your phone
+  // that the new version actually loaded. Visible at the bottom of the app.
+  version: '1.1.0',
+
+  // ---- HYDRATION ----
+  water: {
+    goalOz: 130,        // daily oz target
+    flaskOz: 40,        // size of one Hydro Flask (for the pip display)
+    quickAdds: [10, 20, 30, 40], // +oz buttons (must match HTML buttons)
+  },
+
+  // ---- SLEEP ----
+  sleep: {
+    hourOptions: [4, 5, 6, 7, 8],     // selectable hour buttons
+    goodAtHours: 7,                    // badge turns green at this many hours
+    messages: {                        // shown below the hour buttons
+      excellent: 'Hell Yeah!',         // >= 8h
+      good:      'Solid Sleep!',       // >= 7h
+      meh:       'Could be better...', // >= 6h
+      poor:      'Yikes...',           // < 6h
+      empty:     "How'd you sleep last night?",
+    },
+    qualityLabels: ['Awful','Awful','Poor','Poor','Meh','Okay','Decent','Good','Great','Amazing','Perfect'],
+  },
+
+  // ---- SEVERITY SLIDERS (0-10 scale) ----
+  // Each label array has 11 entries (index 0 through 10).
+  sliderLabels: {
+    skinClarity: ['Severe','Bad','Bad','Rough','Meh','Okay','Decent','Good','Great','Clear!','Flawless'],
+    dairy:       ['None','Trace','Light','Light','Some','Moderate','Moderate','Heavy','Heavy','Binging','Gallon of Milk'],
+    caffeine:    ['None','Sip','Light','Light','Moderate','Moderate','Plenty','Lots','Wired','Vibrating','☠️'],
+    alcohol:     ['None','Sip','Light','Light','A Few','Moderate','Moderate','Heavy','Heavy','Hammered','Blackout'],
+  },
+
+  // ---- DAILY PROGRESS RING + MESSAGES ----
+  progress: {
+    // Weights for the daily completion ring (must sum to 1.0)
+    weights: {
+      routine: 0.40,
+      water:   0.25,
+      sleep:   0.15,
+      tracker: 0.10,
+      workout: 0.10,
+    },
+    // Message shown under the ring at each completion tier
+    messages: {
+      complete: "Perfect day. Let's Go!",        // 100%
+      almost:   'Almost there. Finish strong!',  // >= 75%
+      midway:   'Good progress. Keep it going!', // >= 40%
+      starting: "Let's get it started!",         // < 40%
+      default:  "Let's get after it 💪",         // initial header msg
+    },
+  },
+
+  // ---- WEEKLY REPORT CARD ----
+  report: {
+    // Letter grade cutoffs (overall % -> grade)
+    grades: [
+      { min: 90, letter: 'A'  },
+      { min: 80, letter: 'B+' },
+      { min: 70, letter: 'B'  },
+      { min: 60, letter: 'C+' },
+      { min: 50, letter: 'C'  },
+      { min: 0,  letter: 'D'  },
+    ],
+    // Color thresholds (uses CSS var names)
+    gradeColors: {
+      good: 'var(--green)',   // overall >= 80
+      mid:  'var(--orange)',  // overall >= 60
+      bad:  'var(--red)',     // overall <  60
+    },
+    skinTrend: {
+      improving: { text: '↑ Improving', color: 'var(--green)'  },
+      steady:    { text: '→ Steady',    color: 'var(--orange)' },
+      declining: { text: '↓ Declining', color: 'var(--red)'    },
+      none:      { text: '—',           color: 'var(--text-dim)' },
+      threshold: 0.5, // diff between halves needed to flip from "steady"
+    },
+    emptyMessage: 'No data logged this week yet.',
+  },
+
+  // ---- BANNERS ----
+  banners: {
+    morning: {
+      hourBefore: 11,           // only show before this hour
+      title: 'Good morning, Thomas! ☀️',
+      sub:   "Let's have a great day",
+      dismissText: 'dismiss',
+    },
+    night: {
+      hourAfter: 18,            // only show after this hour
+      title: 'Well done! Sleep well 🌙',
+      sub:   'Night routine complete — your skin thanks you',
+    },
+  },
+
+  // ---- CELEBRATION (100% complete) ----
+  celebration: {
+    emoji: '✅',
+    title: 'Day Complete!',
+    streakLabelPrefix: '⭐ Perfect streak: ',
+    durationMs: 3000,
+  },
+
+  // ---- DAY-OF-WEEK TAG (shown above date) ----
+  // dow: 0=Sun 1=Mon 2=Tue 3=Wed 4=Thu 5=Fri 6=Sat
+  dayTags: {
+    panoxylDifferin:  'PanOxyl · Differin', // Sun, Thu
+    bhaNight:         'BHA Night',          // Wed
+    differinNight:    'Differin Night',     // Mon
+    recoveryNight:    'Recovery Night',     // Tue, Fri, Sat
+  },
+
+  // ---- ROUTINE DEFINITIONS ----
+  // Pure data — to add/remove/rename steps, edit here only.
+  routines: {
+    morning: {
+      // Days that get PanOxyl wash (Sun=0, Thu=4); other days do water rinse
+      panoxylDays: [0, 4],
+      panoxyl: { id:'am_panoxyl', label:'PanOxyl Foam Wash', sub:'Benzoyl peroxide — Thu & Sun', icon:'' },
+      rinse:   { id:'am_rinse',   label:'Water Rinse',       sub:'No cleanser',                  icon:'' },
+      // Items every morning gets, after the cleanser step
+      always: [
+        { id:'am_moist', label:'CeraVe Moisturizer', sub:'Moisturizing Cream', icon:'' },
+        { id:'am_spf',   label:'Sunscreen',          sub:'SPF 30+',            icon:'' },
+      ],
+    },
+    evening: {
+      // Cleanser comes first every night
+      cleanser: { id:'pm_cleanser', label:'Gentle Foaming Wash', sub:'Cleanser', icon:'' },
+      // Active treatments by day
+      differinDays: [0, 1, 4], // Sun, Mon, Thu
+      bhaDays:      [3],        // Wed
+      // (Tue=2, Fri=5, Sat=6 are recovery — no active)
+      differin: { id:'pm_differin', label:'Adapalene Gel', sub:'Differin',                              icon:'' },
+      bha:      { id:'pm_paulas',   label:'Exfoliate',     sub:"Paula's Choice BHA Liquid Exfoliant",   icon:'' },
+      // Always last
+      moisturizer: { id:'pm_moist', label:'CeraVe Moisturizer', sub:'Moisturizing Cream', icon:'' },
+    },
+  },
+
+  // ---- TRACKER BADGE ("X / Y logged") ----
+  trackers: {
+    totalCount: 5, // skin + dairy + caffeine + alcohol + workout
+  },
+};
+
+// ============================================================
+// ============ [DERIVED] — auto-derived constants ============
+// ============================================================
+const WATER_GOAL = CONFIG.water.goalOz;
+const FLASK = CONFIG.water.flaskOz;
 const NUM_FLASKS = Math.ceil(WATER_GOAL / FLASK);
 const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const DAY_FULL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
-// ============ DATE HELPERS ============
+// ============ [DATE HELPERS] ============
 function getToday() {
   const d = new Date();
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
@@ -562,47 +798,36 @@ function formatDate(dateStr) {
   return dt.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
 }
 
-// ============ ROUTINES (based on day-of-week) ============
-// dow: 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
-// PanOxyl AM: Thu(4), Sun(0)
-// Water rinse AM: Mon(1), Tue(2), Wed(3), Fri(5), Sat(6)
+// ============ [ROUTINES] (built from CONFIG.routines) =======
 function getMorning(dow) {
   if (dow === undefined) dow = getDow(viewingDate);
+  const r = CONFIG.routines.morning;
   const items = [];
-  if ([0,4].includes(dow)) {
-    items.push({id:'am_panoxyl',label:'PanOxyl Foam Wash',sub:'Benzoyl peroxide — Thu & Sun',icon:''});
-  } else {
-    items.push({id:'am_rinse',label:'Water Rinse',sub:'No cleanser',icon:''});
-  }
-  items.push({id:'am_moist',label:'CeraVe Moisturizer',sub:'Moisturizing Cream',icon:''});
-  items.push({id:'am_spf',label:'Sunscreen',sub:'SPF 30+',icon:''});
+  items.push(r.panoxylDays.includes(dow) ? r.panoxyl : r.rinse);
+  items.push(...r.always);
   return items;
 }
 
-// Differin Night: Mon(1), Thu(4), Sun(0)
-// BHA Night: Wed(3)
-// Recovery Night (no actives): Tue(2), Fri(5), Sat(6)
 function getEvening(dow) {
   if (dow === undefined) dow = getDow(viewingDate);
-  const items = [{id:'pm_cleanser',label:'Gentle Foaming Wash',sub:'Cleanser',icon:''}];
-  if ([1,4,0].includes(dow)) {
-    items.push({id:'pm_differin',label:'Adapalene Gel',sub:'Differin',icon:''});
-  } else if (dow === 3) {
-    items.push({id:'pm_paulas',label:"Exfoliate",sub:'Paula\'s Choice BHA Liquid Exfoliant',icon:''});
-  }
-  // Recovery nights (Tue, Fri, Sat) skip straight to moisturizer
-  items.push({id:'pm_moist',label:'CeraVe Moisturizer',sub:'Moisturizing Cream',icon:''});
+  const r = CONFIG.routines.evening;
+  const items = [r.cleanser];
+  if (r.differinDays.includes(dow))      items.push(r.differin);
+  else if (r.bhaDays.includes(dow))      items.push(r.bha);
+  // Recovery nights skip the active step
+  items.push(r.moisturizer);
   return items;
 }
 
 function getDayTag(dow) {
-  if ([0,4].includes(dow)) return 'PanOxyl · Differin';
-  if (dow === 3) return 'BHA Night';
-  if (dow === 1) return 'Differin Night';
-  return 'Recovery Night';
+  const t = CONFIG.dayTags;
+  if ([0,4].includes(dow)) return t.panoxylDifferin;
+  if (dow === 3)           return t.bhaNight;
+  if (dow === 1)           return t.differinNight;
+  return t.recoveryNight;
 }
 
-// ============ STATE MANAGEMENT ============
+// ============ [STATE] — load/save/default ============
 // Each day is stored as ss_YYYY-MM-DD in localStorage
 function stateKey(dateStr) { return 'ss_' + dateStr; }
 
@@ -634,7 +859,7 @@ function saveState(state) {
   localStorage.setItem(stateKey(state.date), JSON.stringify(state));
 }
 
-// ============ STREAK SYSTEM ============
+// ============ [STREAK] ============
 function getStreakData() {
   try { return JSON.parse(localStorage.getItem('ss_streak_v2')) || { current: 0, best: 0, lastComplete: null }; }
   catch { return { current: 0, best: 0, lastComplete: null }; }
@@ -649,15 +874,7 @@ function isDayComplete(dateStr) {
 }
 
 function isDayLogged(dateStr) {
-  const state = loadState(dateStr);
-  if (!state) return false;
-  // "Logged" = user interacted with anything at all
-  const hasChecks = Object.values(state.checks).some(v => v);
-  const hasWater = state.water > 0;
-  const hasSleep = state.sleep !== null;
-  const hasTracker = [state.skinClarity, state.dairy, state.caffeine, state.alcohol].some(v => v !== null);
-  const hasWorkout = state.workout !== null;
-  return hasChecks || hasWater || hasSleep || hasTracker || hasWorkout;
+  return hasAnyData(loadState(dateStr));
 }
 
 function recalcStreak() {
@@ -713,28 +930,33 @@ function recalcStreak() {
   return sd;
 }
 
-// ============ PROGRESS CALCULATION ============
+// ============ [PROGRESS CALC] ============
 function calcProg(state, dateStr) {
   const dow = getDow(dateStr);
   const am = getMorning(dow), pm = getEvening(dow);
   const all = [...am, ...pm];
   const done = all.filter(i => state.checks[i.id]).length;
 
-  // Weights: routines 40%, water 25%, sleep 15%, trackers 10%, workout 10%
   const routinePct = all.length > 0 ? done / all.length : 0;
-  const waterPct = Math.min(state.water / WATER_GOAL, 1);
-  const sleepPct = state.sleep !== null ? 1 : 0;
+  const waterPct   = Math.min(state.water / WATER_GOAL, 1);
+  const sleepPct   = state.sleep !== null ? 1 : 0;
 
-  // Trackers: skin clarity logged = done
   const trackersDone = [state.skinClarity, state.dairy, state.caffeine, state.alcohol].filter(v => v !== null).length;
   const trackerPct = trackersDone / 4;
 
   const workoutPct = state.workout !== null ? 1 : 0;
 
-  return Math.round((routinePct * 0.40 + waterPct * 0.25 + sleepPct * 0.15 + trackerPct * 0.10 + workoutPct * 0.10) * 100);
+  const w = CONFIG.progress.weights;
+  return Math.round((
+    routinePct * w.routine +
+    waterPct   * w.water   +
+    sleepPct   * w.sleep   +
+    trackerPct * w.tracker +
+    workoutPct * w.workout
+  ) * 100);
 }
 
-// ============ APP STATE ============
+// ============ [APP STATE] — module-level vars ============
 let viewingDate = getToday();
 let S = loadState(viewingDate) || defaultState(viewingDate);
 let celeb = false;
@@ -742,21 +964,17 @@ let nightBannerShown = false;
 let weekOffset = 0; // 0 = current week, -1 = last week, etc.
 
 function isViewingToday() { return viewingDate === getToday(); }
+function isViewingFuture() { return viewingDate > getToday(); }
+function canEdit() { return !isViewingFuture(); }
 
 function changeWeek(dir) {
   const newOffset = weekOffset + dir;
   if (newOffset > 0) return; // can't go into the future
   weekOffset = newOffset;
-  // When navigating weeks, select the most recent valid day in that week
-  const week = getWeekDates(weekOffset);
-  const today = getToday();
-  if (weekOffset === 0) {
-    switchDay(today);
-  } else {
-    // Select last day of that past week (Saturday) or the latest day with data
-    const lastDay = week[6] <= today ? week[6] : today;
-    switchDay(lastDay);
-  }
+  // Just refresh the selector to show the new week.
+  // Don't auto-pick a day — keep showing whichever day the user
+  // was already viewing until they tap a new one themselves.
+  renderDaySelector();
 }
 
 // Swipe detection on the week nav
@@ -792,7 +1010,7 @@ function initWeekSwipe() {
   });
 }
 
-// ============ WEEKLY REPORT CARD ============
+// ============ [REPORT CARD] ============
 let reportOpen = false;
 
 function toggleReport() {
@@ -831,12 +1049,15 @@ function renderReport() {
     if (state.sleep !== null) { sleepTotal += state.sleep; sleepCount++; }
     if (state.water > 0) { waterTotal += state.water; waterCount++; }
 
-    // Routine %
-    const dow = getDow(ds);
-    const am = getMorning(dow), pm = getEvening(dow);
-    const all = [...am, ...pm];
-    routineTotal += all.length;
-    routineDone += all.filter(item => state.checks[item.id]).length;
+    // Routine % — only count days the user actually logged something,
+    // so empty/legacy records can't drag the weekly average down.
+    if (logged) {
+      const dow = getDow(ds);
+      const am = getMorning(dow), pm = getEvening(dow);
+      const all = [...am, ...pm];
+      routineTotal += all.length;
+      routineDone += all.filter(item => state.checks[item.id]).length;
+    }
 
     if (state.skinClarity !== null) {
       skinValues.push(state.skinClarity);
@@ -847,7 +1068,7 @@ function renderReport() {
   });
 
   if (daysLogged === 0) {
-    el.innerHTML = '<div class="no-data-msg">No data logged this week yet.</div>';
+    el.innerHTML = `<div class="no-data-msg">${CONFIG.report.emptyMessage}</div>`;
     return;
   }
 
@@ -857,8 +1078,9 @@ function renderReport() {
   const avgSkin = skinValues.length > 0 ? (skinValues.reduce((a,b)=>a+b,0) / skinValues.length) : null;
 
   // Skin Health trend — compare first half to second half of available data
-  let skinTrendText = '—';
-  let skinTrendColor = 'var(--text-dim)';
+  const trendCfg = CONFIG.report.skinTrend;
+  let skinTrendText = trendCfg.none.text;
+  let skinTrendColor = trendCfg.none.color;
   if (skinValues.length >= 2) {
     const mid = Math.floor(skinValues.length / 2);
     const firstHalf = skinValues.slice(0, mid);
@@ -866,9 +1088,9 @@ function renderReport() {
     const avg1 = firstHalf.reduce((a,b)=>a+b,0) / firstHalf.length;
     const avg2 = secondHalf.reduce((a,b)=>a+b,0) / secondHalf.length;
     const diff = avg2 - avg1;
-    if (diff > 0.5) { skinTrendText = '↑ Improving'; skinTrendColor = 'var(--green)'; }
-    else if (diff < -0.5) { skinTrendText = '↓ Declining'; skinTrendColor = 'var(--red)'; }
-    else { skinTrendText = '→ Steady'; skinTrendColor = 'var(--orange)'; }
+    if (diff >  trendCfg.threshold) { skinTrendText = trendCfg.improving.text; skinTrendColor = trendCfg.improving.color; }
+    else if (diff < -trendCfg.threshold) { skinTrendText = trendCfg.declining.text; skinTrendColor = trendCfg.declining.color; }
+    else { skinTrendText = trendCfg.steady.text; skinTrendColor = trendCfg.steady.color; }
   }
 
   // Overall grade
@@ -880,8 +1102,9 @@ function renderReport() {
   if (avgSkin !== null) { gradeScore += (avgSkin / 10) * 100; gradeFactors++; }
 
   const overall = gradeFactors > 0 ? Math.round(gradeScore / gradeFactors) : 0;
-  const grade = overall >= 90 ? 'A' : overall >= 80 ? 'B+' : overall >= 70 ? 'B' : overall >= 60 ? 'C+' : overall >= 50 ? 'C' : 'D';
-  const gradeColor = overall >= 80 ? 'var(--green)' : overall >= 60 ? 'var(--orange)' : 'var(--red)';
+  const grade = (CONFIG.report.grades.find(g => overall >= g.min) || CONFIG.report.grades[CONFIG.report.grades.length - 1]).letter;
+  const gc = CONFIG.report.gradeColors;
+  const gradeColor = overall >= 80 ? gc.good : overall >= 60 ? gc.mid : gc.bad;
 
   // Build skin trend bars
   const skinBarsHTML = skinByDay.map((val, i) => {
@@ -925,14 +1148,29 @@ function renderReport() {
   `;
 }
 
+// ============ [DAY SWITCHING] ============
 function switchDay(dateStr) {
-  // Save current state first
-  saveState(S);
+  // Save current state ONLY if it has real data — never write an empty
+  // default state to storage, or it pollutes weekly report calculations.
+  if (S && hasAnyData(S)) saveState(S);
   viewingDate = dateStr;
   S = loadState(dateStr) || defaultState(dateStr);
   celeb = false;
   nightBannerShown = false;
   render();
+}
+
+// True if a state object has anything the user actually logged.
+// Used to decide whether to persist S, and to filter the weekly report.
+function hasAnyData(state) {
+  if (!state) return false;
+  if (state.checks && Object.values(state.checks).some(v => v)) return true;
+  if (state.water > 0) return true;
+  if (state.sleep !== null) return true;
+  if (state.sleepQuality !== null) return true;
+  if ([state.skinClarity, state.dairy, state.caffeine, state.alcohol].some(v => v !== null)) return true;
+  if (state.workout !== null) return true;
+  return false;
 }
 
 // Navigate to today (used by week nav or quick return)
@@ -941,9 +1179,9 @@ function goToToday() {
   switchDay(getToday());
 }
 
-// ============ WATER with UNDO ============
+// ============ [WATER] — addWater + undo ============
 function addWater(oz) {
-  if (!isViewingToday()) return;
+  if (!canEdit()) return;
   if (!S.waterHistory) S.waterHistory = [];
   S.waterHistory.push(oz);
   S.water = Math.max(0, S.water + oz);
@@ -952,7 +1190,7 @@ function addWater(oz) {
 }
 
 function undoWater() {
-  if (!isViewingToday()) return;
+  if (!canEdit()) return;
   if (!S.waterHistory || S.waterHistory.length === 0) return;
   const last = S.waterHistory.pop();
   S.water = Math.max(0, S.water - last);
@@ -960,15 +1198,15 @@ function undoWater() {
   render();
 }
 
-// ============ WORKOUT ============
+// ============ [TRACKERS] — setWorkout, setTracker ============
 function setWorkout(val) {
-  if (!isViewingToday()) return;
+  if (!canEdit()) return;
   S.workout = S.workout === val ? null : val;
   saveState(S);
   render();
 }
 
-// ============ SLIDER LOGIC ============
+// ============ [SLIDERS INIT] — touch handlers ============
 function initSliderTrack(track, onUpdate) {
   // Mouse — works fine, no scroll conflict
   let mouseDrag = false;
@@ -1021,7 +1259,7 @@ function initSliders() {
   tracks.forEach(track => {
     const key = track.dataset.key;
     initSliderTrack(track, (e) => {
-      if (!isViewingToday()) return;
+      if (!canEdit()) return;
       const rect = track.getBoundingClientRect();
       const x = (e.touches ? e.touches[0] : e).clientX;
       let pct = Math.max(0, Math.min(1, (x - rect.left) / rect.width));
@@ -1035,7 +1273,7 @@ function initSliders() {
   const sqTrack = document.getElementById('sqTrack');
   if (sqTrack) {
     initSliderTrack(sqTrack, (e) => {
-      if (!isViewingToday()) return;
+      if (!canEdit()) return;
       const rect = sqTrack.getBoundingClientRect();
       const x = (e.touches ? e.touches[0] : e).clientX;
       let pct = Math.max(0, Math.min(1, (x - rect.left) / rect.width));
@@ -1046,7 +1284,7 @@ function initSliders() {
   }
 }
 
-// ============ RENDER ============
+// ============ [RENDER] ============
 function renderDaySelector() {
   const el = document.getElementById('daySelector');
   const week = getWeekDates(weekOffset);
@@ -1088,6 +1326,10 @@ function renderDaySelector() {
     pastEl.classList.remove('show');
     document.body.classList.remove('past-view');
   }
+
+  // Reset button label reflects which day will be reset
+  const resetBtn = document.getElementById('resetBtn');
+  if (resetBtn) resetBtn.textContent = isViewingToday() ? 'Reset today' : 'Reset this day';
 }
 
 function renderGreeting() {
@@ -1095,12 +1337,13 @@ function renderGreeting() {
   if (!isViewingToday()) { el.innerHTML = ''; return; }
   const hour = new Date().getHours();
   const key = 'ss_greeted_' + getToday();
-  if (hour < 11 && !localStorage.getItem(key)) {
+  const cfg = CONFIG.banners.morning;
+  if (hour < cfg.hourBefore && !localStorage.getItem(key)) {
     localStorage.setItem(key, '1');
     el.innerHTML = `<div class="greeting-banner">
-      <div class="greet-text">Good morning, Thomas! ☀️</div>
-      <div class="greet-sub">Let's have a great day</div>
-      <button class="dismiss" onclick="this.parentElement.remove()">dismiss</button>
+      <div class="greet-text">${cfg.title}</div>
+      <div class="greet-sub">${cfg.sub}</div>
+      <button class="dismiss" onclick="this.parentElement.remove()">${cfg.dismissText}</button>
     </div>`;
   } else {
     el.innerHTML = '';
@@ -1113,11 +1356,12 @@ function renderNightBanner() {
   const hour = new Date().getHours();
   const pm = getEvening();
   const allDone = pm.every(i => S.checks[i.id]);
-  if (hour >= 18 && allDone && !nightBannerShown) {
+  const cfg = CONFIG.banners.night;
+  if (hour >= cfg.hourAfter && allDone && !nightBannerShown) {
     nightBannerShown = true;
     el.innerHTML = `<div class="night-done-banner">
-      <div class="night-text">Well done! Sleep well 🌙</div>
-      <div class="night-sub">Night routine complete — your skin thanks you</div>
+      <div class="night-text">${cfg.title}</div>
+      <div class="night-sub">${cfg.sub}</div>
     </div>`;
   } else if (!allDone) {
     nightBannerShown = false;
@@ -1133,7 +1377,7 @@ function buildList(id, items) {
     d.className = 'check-item' + (S.checks[item.id] ? ' checked' : '');
     d.innerHTML = `<div class="checkbox"><svg viewBox="0 0 14 14" fill="none"><path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="check-info"><div class="check-label">${item.label}</div><div class="check-sub">${item.sub}</div></div><span class="check-icon">${item.icon}</span>`;
     d.addEventListener('click', () => {
-      if (!isViewingToday()) return;
+      if (!canEdit()) return;
       S.checks[item.id] = !S.checks[item.id];
       saveState(S);
       render();
@@ -1174,7 +1418,7 @@ function renderSleep() {
     b.className = 'sleep-btn' + (S.sleep === h ? ' active' : '');
     b.textContent = h + 'h';
     b.addEventListener('click', () => {
-      if (!isViewingToday()) return;
+      if (!canEdit()) return;
       S.sleep = S.sleep === h ? null : h;
       saveState(S);
       render();
@@ -1184,15 +1428,19 @@ function renderSleep() {
   const disp = document.getElementById('sleepDisplay');
   const badge = document.getElementById('sleepBadge');
   const msg = document.getElementById('sleepMsg');
+  const sleepCfg = CONFIG.sleep;
   if (S.sleep !== null) {
     disp.innerHTML = S.sleep + '<span class="unit"> hrs</span>';
     badge.textContent = S.sleep + ' hrs';
-    badge.className = 'section-badge' + (S.sleep >= 7 ? ' done' : '');
-    msg.textContent = S.sleep >= 8 ? 'Hell Yeah!' : S.sleep >= 7 ? 'Solid Sleep!' : S.sleep >= 6 ? 'Could be better...' : 'Yikes...';
+    badge.className = 'section-badge' + (S.sleep >= sleepCfg.goodAtHours ? ' done' : '');
+    msg.textContent = S.sleep >= 8 ? sleepCfg.messages.excellent
+                    : S.sleep >= 7 ? sleepCfg.messages.good
+                    : S.sleep >= 6 ? sleepCfg.messages.meh
+                    : sleepCfg.messages.poor;
   } else {
     disp.innerHTML = '—<span class="unit"> hrs</span>';
     badge.textContent = 'Not logged'; badge.className = 'section-badge';
-    msg.textContent = "How'd you sleep last night?";
+    msg.textContent = sleepCfg.messages.empty;
   }
 
   // Sleep quality slider
@@ -1207,7 +1455,7 @@ function renderSleep() {
       const pct = (val / 10) * 100;
       sqFill.style.width = pct + '%';
       sqThumb.style.left = pct + '%';
-      const labels = ['Awful','Awful','Poor','Poor','Meh','Okay','Decent','Good','Great','Amazing','Perfect'];
+      const labels = CONFIG.sleep.qualityLabels;
       sqValEl.textContent = val + '/10 · ' + labels[val];
       sqValEl.className = 'sq-value' + (val >= 7 ? ' good' : val >= 4 ? ' mid' : ' bad');
     } else {
@@ -1222,27 +1470,24 @@ function renderSleep() {
 }
 
 function renderSliders() {
+  const SL = CONFIG.sliderLabels;
   // Skin Clarity
   renderOneSlider('skinClarity', 'skinFill', 'skinThumb', 'skinVal', S.skinClarity, (v) => {
-    const labels = ['Severe','Bad','Bad','Rough','Meh','Okay','Decent','Good','Great','Clear!','Flawless'];
     const el = document.getElementById('skinVal');
-    el.textContent = v + '/10 · ' + labels[v];
+    el.textContent = v + '/10 · ' + SL.skinClarity[v];
     el.className = 'slider-value' + (v >= 7 ? '' : v >= 4 ? ' mid' : ' low');
   });
   // Dairy
   renderOneSlider('dairy', 'dairyFill', 'dairyThumb', 'dairyVal', S.dairy, (v) => {
-    const labels = ['None','Trace','Light','Light','Some','Moderate','Moderate','Heavy','Heavy','Binging','Gallon of Milk'];
-    document.getElementById('dairyVal').textContent = v + '/10 · ' + labels[v];
+    document.getElementById('dairyVal').textContent = v + '/10 · ' + SL.dairy[v];
   });
   // Caffeine
   renderOneSlider('caffeine', 'caffeineFill', 'caffeineThumb', 'caffeineVal', S.caffeine, (v) => {
-    const labels = ['None','Sip','Light','Light','Moderate','Moderate','Plenty','Lots','Wired','Vibrating','☠️'];
-    document.getElementById('caffeineVal').textContent = v + '/10 · ' + labels[v];
+    document.getElementById('caffeineVal').textContent = v + '/10 · ' + SL.caffeine[v];
   });
   // Alcohol
   renderOneSlider('alcohol', 'alcoholFill', 'alcoholThumb', 'alcoholVal', S.alcohol, (v) => {
-    const labels = ['None','Sip','Light','Light','A Few','Moderate','Moderate','Heavy','Heavy','Hammered','Blackout'];
-    document.getElementById('alcoholVal').textContent = v + '/10 · ' + labels[v];
+    document.getElementById('alcoholVal').textContent = v + '/10 · ' + SL.alcohol[v];
   });
 }
 
@@ -1270,9 +1515,10 @@ function renderWorkout() {
 
 function renderTrackerBadge() {
   const logged = [S.skinClarity, S.dairy, S.caffeine, S.alcohol, S.workout].filter(v => v !== null).length;
+  const total = CONFIG.trackers.totalCount;
   const badge = document.getElementById('trackerBadge');
-  badge.textContent = logged + ' / 5 logged';
-  badge.className = 'section-badge' + (logged >= 5 ? ' done' : '');
+  badge.textContent = logged + ' / ' + total + ' logged';
+  badge.className = 'section-badge' + (logged >= total ? ' done' : '');
 }
 
 function render() {
@@ -1321,38 +1567,42 @@ function render() {
 
   // Daily Message
   const m = document.getElementById('dailyMsg');
+  const pm_msgs = CONFIG.progress.messages;
   if (pct >= 100) {
-    m.textContent = 'Perfect day. Let\'s Go!';
+    m.textContent = pm_msgs.complete;
     m.className = 'daily-msg complete';
     if (!celeb && isViewingToday()) { celeb = true; showCeleb(sd); }
-  } else if (pct >= 75) { m.textContent = 'Almost there. Finish strong!'; m.className = 'daily-msg'; }
-  else if (pct >= 40) { m.textContent = 'Good progress. Keep it going!'; m.className = 'daily-msg'; }
-  else { m.textContent = "Let's get it started!"; m.className = 'daily-msg'; }
+  } else if (pct >= 75) { m.textContent = pm_msgs.almost;   m.className = 'daily-msg'; }
+  else if   (pct >= 40) { m.textContent = pm_msgs.midway;   m.className = 'daily-msg'; }
+  else                  { m.textContent = pm_msgs.starting; m.className = 'daily-msg'; }
 
   // Re-render report if open
   if (reportOpen) renderReport();
 }
 
+// ============ [CELEBRATION] ============
 function showCeleb(sd) {
+  const cfg = CONFIG.celebration;
   const o = document.createElement('div'); o.className = 'overlay';
   const p = document.createElement('div'); p.className = 'celebration';
-  p.innerHTML = `<div class="emoji">✅</div><div class="title">Day Complete!</div><div class="sub">⭐ Perfect streak: ${sd.current} day${sd.current !== 1 ? 's' : ''}</div>`;
+  p.innerHTML = `<div class="emoji">${cfg.emoji}</div><div class="title">${cfg.title}</div><div class="sub">${cfg.streakLabelPrefix}${sd.current} day${sd.current !== 1 ? 's' : ''}</div>`;
   document.body.appendChild(o); document.body.appendChild(p);
   const x = () => { o.remove(); p.remove(); };
-  o.addEventListener('click', x); p.addEventListener('click', x); setTimeout(x, 3000);
+  o.addEventListener('click', x); p.addEventListener('click', x); setTimeout(x, cfg.durationMs);
 }
 
 function resetDay() {
-  if (!isViewingToday()) return;
-  if (confirm('Reset all progress for today?')) {
-    S = defaultState(getToday());
+  if (!canEdit()) return;
+  const label = isViewingToday() ? 'today' : formatDate(viewingDate);
+  if (confirm('Reset all progress for ' + label + '?')) {
+    S = defaultState(viewingDate);
     celeb = false;
     saveState(S);
     render();
   }
 }
 
-// ============ MIDNIGHT AUTO-RESET ============
+// ============ [RESET / MIDNIGHT] ============
 function scheduleReset() {
   const now = new Date();
   const midnight = new Date(now);
@@ -1370,7 +1620,7 @@ function scheduleReset() {
   }, ms + 500); // 500ms buffer
 }
 
-// ============ MIGRATION — preserve old routine data ============
+// ============ [MIGRATION] — preserve old routine data =======
 function migrateOldData() {
   if (localStorage.getItem('ss_migrated_v2')) return;
   
@@ -1404,12 +1654,72 @@ function migrateOldData() {
   localStorage.setItem('ss_migrated_v2', '1');
 }
 
-// ============ INIT ============
+// ============ [BACKUP / RESTORE] ============
+// Exports every ss_* key to a JSON file. Use this before re-installing
+// the home-screen shortcut, switching phones, or any time you want a
+// safety net. Restoring will MERGE with existing data — your current
+// progress is preserved unless a backup entry overwrites the same date.
+function exportBackup() {
+  const data = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith('ss_')) data[k] = localStorage.getItem(k);
+  }
+  const payload = {
+    app: 'LockedIn',
+    version: CONFIG.version,
+    exportedAt: new Date().toISOString(),
+    data: data,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'lockedin-backup-' + getToday() + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function importBackup() {
+  const input = document.getElementById('importFileInput');
+  input.value = ''; // reset so re-selecting same file fires onchange
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const payload = JSON.parse(ev.target.result);
+        if (!payload.data || typeof payload.data !== 'object') {
+          alert('That doesn\'t look like a LockedIn backup file.');
+          return;
+        }
+        const count = Object.keys(payload.data).length;
+        if (!confirm('Restore ' + count + ' entries from backup? Existing data for the same dates will be overwritten.')) return;
+        Object.entries(payload.data).forEach(([k, v]) => {
+          if (k.startsWith('ss_')) localStorage.setItem(k, v);
+        });
+        alert('Restored ' + count + ' entries. Reloading...');
+        location.reload();
+      } catch (err) {
+        alert('Could not read backup file: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// ============ [INIT] ============
 migrateOldData();
 initSliders();
 initWeekSwipe();
 // Reload state after migration
 S = loadState(viewingDate) || defaultState(viewingDate);
+// Show version in footer
+document.getElementById('versionLabel').textContent = 'LockedIn v' + CONFIG.version;
 render();
 scheduleReset();
 </script>
