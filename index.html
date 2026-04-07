@@ -1033,6 +1033,7 @@ function renderReport() {
   let dailyPctSum = 0, dailyPctCount = 0;
   let skinValues = [];
   let daysLogged = 0;
+  const skinByDay = [];
   week.forEach((ds, i) => {
     if (ds > today) { skinByDay.push(null); return; }
     const state = loadState(ds);
