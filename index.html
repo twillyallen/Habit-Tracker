@@ -599,7 +599,7 @@ const CONFIG = {
   // ---- VERSION ----
   // Bump this when you push an update so you can confirm on your phone
   // that the new version actually loaded. Visible at the bottom of the app.
-  version: '1.1.1',
+  version: '1.2.0',
 
   // ---- HYDRATION ----
   water: {
@@ -704,37 +704,36 @@ const CONFIG = {
   // ---- DAY-OF-WEEK TAG (shown above date) ----
   // dow: 0=Sun 1=Mon 2=Tue 3=Wed 4=Thu 5=Fri 6=Sat
   dayTags: {
-    panoxylDifferin:  'PanOxyl · Differin', // Sun, Thu
-    bhaNight:         'BHA Night',          // Wed
-    differinNight:    'Differin Night',     // Mon
-    recoveryNight:    'Recovery Night',     // Tue, Fri, Sat
+    bhaNight:       'BHA Night',       // Sun
+    differinNight:  'Differin Night',  // Mon–Fri
+    recoveryNight:  'Recovery Night',  // Sat
   },
 
   // ---- ROUTINE DEFINITIONS ----
   // Pure data — to add/remove/rename steps, edit here only.
   routines: {
     morning: {
-      // Days that get PanOxyl wash (Sun=0, Thu=4); other days do water rinse
-      panoxylDays: [0, 4],
-      panoxyl: { id:'am_panoxyl', label:'PanOxyl Foam Wash', sub:'Benzoyl peroxide — Thu & Sun', icon:'' },
-      rinse:   { id:'am_rinse',   label:'Water Rinse',       sub:'No cleanser',                  icon:'' },
+      // All mornings: water rinse only (no cleanser)
+      panoxylDays: [], // no PanOxyl in the morning anymore
+      panoxyl: { id:'am_panoxyl', label:'PanOxyl Foam Wash', sub:'Benzoyl peroxide', icon:'' },
+      rinse:   { id:'am_rinse',   label:'Water Rinse',       sub:'No cleanser', icon:'' },
       // Items every morning gets, after the cleanser step
       always: [
-        { id:'am_moist', label:'CeraVe Moisturizer', sub:'Moisturizing Cream', icon:'' },
-        { id:'am_spf',   label:'Sunscreen',          sub:'SPF 30+',            icon:'' },
+        { id:'am_moist', label:'Hydro Boost Water Gel', sub:'Moisturizer', icon:'' },
+        { id:'am_spf',   label:'Sunscreen',             sub:'CeraVe Tinted SPF 30',     icon:'' },
       ],
     },
     evening: {
       // Cleanser comes first every night
-      cleanser: { id:'pm_cleanser', label:'Gentle Foaming Wash', sub:'Cleanser', icon:'' },
+      cleanser: { id:'pm_cleanser', label:'PanOxyl 10% Foaming Wash', sub:'Benzoyl Peroxide Cleanser', icon:'' },
       // Active treatments by day
-      differinDays: [0, 1, 4], // Sun, Mon, Thu
-      bhaDays:      [3],        // Wed
-      // (Tue=2, Fri=5, Sat=6 are recovery — no active)
-      differin: { id:'pm_differin', label:'Adapalene Gel', sub:'Differin',                              icon:'' },
-      bha:      { id:'pm_paulas',   label:'Exfoliate',     sub:"Paula's Choice BHA Liquid Exfoliant",   icon:'' },
+      differinDays: [1, 2, 3, 4, 5], // Mon–Fri
+      bhaDays:      [0],              // Sun
+      // (Sat=6 is recovery — no active)
+      differin: { id:'pm_differin', label:'Differin Adapalene Gel', sub:'0.1% Adapalene',           icon:'' },
+      bha:      { id:'pm_paulas',   label:'Exfoliate',              sub:"Paula's Choice BHA Liquid Exfoliant", icon:'' },
       // Always last
-      moisturizer: { id:'pm_moist', label:'CeraVe Moisturizer', sub:'Moisturizing Cream', icon:'' },
+      moisturizer: { id:'pm_moist', label:'Hydro Boost Water Gel', sub:'Neutrogena — Moisturizer', icon:'' },
     },
   },
 
@@ -818,10 +817,9 @@ function getEvening(dow) {
 
 function getDayTag(dow) {
   const t = CONFIG.dayTags;
-  if ([0,4].includes(dow)) return t.panoxylDifferin;
-  if (dow === 3)           return t.bhaNight;
-  if (dow === 1)           return t.differinNight;
-  return t.recoveryNight;
+  if (dow === 0)           return t.bhaNight;      // Sun = BHA
+  if (dow === 6)           return t.recoveryNight;  // Sat = Recovery
+  return t.differinNight;                           // Mon–Fri = Differin
 }
 
 // ============ [STATE] — load/save/default ============
@@ -1615,36 +1613,28 @@ function scheduleReset() {
 
 // ============ [MIGRATION] — preserve old routine data =======
 function migrateOldData() {
-  if (localStorage.getItem('ss_migrated_v2')) return;
+  if (localStorage.getItem('ss_migrated_v3')) return;
   
-  // Scan all stored days and remap check IDs
+  // v3 migration: routine overhaul
+  // - Morning: all days now water rinse (no PanOxyl in AM)
+  // - Evening cleanser: now PanOxyl 10% (same id pm_cleanser, just renamed)
+  // - Differin: was [0,1,4] (Sun/Mon/Thu), now [1,2,3,4,5] (Mon–Fri)
+  // - BHA: was [3] (Wed), now [0] (Sun)
+  // - Moisturizer: was CeraVe, now Hydro Boost (same id pm_moist)
+  // Check IDs haven't changed so most data carries over naturally.
+  // Old differin checks on Sun(0)/Thu(4) that are now BHA/Differin days respectively
+  // are close enough to keep as-is.
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
-    if (!key.startsWith('ss_20')) continue; // only day-state keys
+    if (!key.startsWith('ss_20')) continue;
     try {
       const state = JSON.parse(localStorage.getItem(key));
       if (!state || !state.checks) continue;
-      const dateStr = key.replace('ss_', '');
-      const dow = getDow(dateStr);
-      
-      // Old routine had am_panoxyl on M(1)/W(3)/F(5).
-      // New routine has am_panoxyl on Thu(4)/Sun(0), am_rinse on everything else.
-      // For old PanOxyl days (M/W/F) that are now water-rinse days:
-      //   if am_panoxyl was checked, carry it to am_rinse (they did their morning wash)
-      if ([1,3,5].includes(dow) && state.checks['am_panoxyl'] && !state.checks['am_rinse']) {
-        state.checks['am_rinse'] = true;
-      }
-      
-      // Old routine had pm_differin on Mon-Sat, pm_paulas on Sun only.
-      // New routine: pm_differin on Mon(1)/Thu(4)/Sun(0), pm_paulas on Wed(3), 
-      //   nothing extra on Tue(2)/Fri(5)/Sat(6) (recovery).
-      // Recovery nights (Tue/Fri/Sat): old had pm_differin checked — just drop it,
-      //   their cleanser + moisturizer checks still carry over fine.
-      
       localStorage.setItem(key, JSON.stringify(state));
     } catch(e) { /* skip bad entries */ }
   }
-  localStorage.setItem('ss_migrated_v2', '1');
+  localStorage.setItem('ss_migrated_v2', '1'); // keep v2 flag
+  localStorage.setItem('ss_migrated_v3', '1');
 }
 
 // ============ [INIT] ============
