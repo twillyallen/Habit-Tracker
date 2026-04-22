@@ -300,8 +300,14 @@ body {
 .report-stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
 .report-stat {
   background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:12px;
-  padding:12px; text-align:center;
+  padding:12px; text-align:center; cursor:pointer;
+  transition:border-color 0.2s, background 0.2s, transform 0.1s;
 }
+.report-stat:active { transform:scale(0.96); }
+.report-stat.sleep.active  { border-color:var(--orange); background:var(--orange-glow); }
+.report-stat.water.active  { border-color:var(--water);  background:var(--water-glow);  }
+.report-stat.routine.active{ border-color:var(--green);  background:var(--green-glow);  }
+.report-stat.skin.active   { border-color:var(--purple); background:var(--purple-glow); }
 .report-stat .stat-value { font-size:22px; font-weight:700; margin-bottom:2px; }
 .report-stat .stat-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim); }
 .report-stat.sleep .stat-value { color:var(--orange); }
@@ -320,6 +326,30 @@ body {
 .report-grade .grade { font-size:28px; font-weight:700; }
 .report-grade .grade-label { font-size:12px; color:var(--text-dim); font-weight:500; margin-top:2px; }
 .no-data-msg { text-align:center; font-size:13px; color:var(--text-dim); padding:16px 0; font-weight:500; }
+
+/* ===== [SKIN ANALYSIS] ===================================== */
+.analysis-card {
+  background:var(--surface); border:1px solid rgba(188,140,255,0.2);
+  border-radius:16px; padding:14px 16px; margin-bottom:14px;
+}
+.analysis-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+.analysis-title { font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:1.2px; color:var(--text-dim); }
+.analysis-score { font-size:12px; font-weight:700; color:var(--purple); }
+.analysis-sub { font-size:12px; color:var(--text-dim); margin-bottom:12px; font-weight:500; }
+.analysis-group { margin-bottom:12px; }
+.analysis-group:last-child { margin-bottom:0; }
+.analysis-group-label {
+  font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px;
+  color:var(--text-dim); margin-bottom:6px; opacity:0.6;
+}
+.analysis-chips { display:flex; flex-wrap:wrap; gap:6px; }
+.analysis-chip {
+  display:flex; flex-direction:column; align-items:center;
+  background:rgba(255,255,255,0.02); border:1px solid var(--border);
+  border-radius:10px; padding:8px 12px; flex:1; min-width:64px;
+}
+.chip-label { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-dim); margin-bottom:3px; }
+.chip-val { font-size:13px; font-weight:600; color:var(--text); }
 
 /* ---- Reset ---- */
 .reset-row { text-align:center; padding-bottom:8px; padding-top:4px; }
@@ -550,6 +580,7 @@ body.past-view .section { opacity:0.92; }
   </div>
 </div>
 
+<div id="skinAnalysis" style="display:none;"></div>
 <div class="reset-row"><button class="reset-btn" id="resetBtn" onclick="resetDay()">Reset today</button></div>
 <div class="footer-row">
 
@@ -599,7 +630,7 @@ const CONFIG = {
   // ---- VERSION ----
   // Bump this when you push an update so you can confirm on your phone
   // that the new version actually loaded. Visible at the bottom of the app.
-  version: '1.2.0',
+  version: '1.2.5',
 
   // ---- HYDRATION ----
   water: {
@@ -710,30 +741,44 @@ const CONFIG = {
   },
 
   // ---- ROUTINE DEFINITIONS ----
-  // Pure data — to add/remove/rename steps, edit here only.
+  // To change a day: flip true/false next to any product.
+  // To add a product: add it to `products`, then add the key to each day's object.
   routines: {
     morning: {
-      // All mornings: water rinse only (no cleanser)
-      panoxylDays: [], // no PanOxyl in the morning anymore
-      panoxyl: { id:'am_panoxyl', label:'PanOxyl Foam Wash', sub:'Benzoyl peroxide', icon:'' },
-      rinse:   { id:'am_rinse',   label:'Water Rinse',       sub:'No cleanser', icon:'' },
-      // Items every morning gets, after the cleanser step
-      always: [
-        { id:'am_moist', label:'Hydro Boost Water Gel', sub:'Moisturizer', icon:'' },
-        { id:'am_spf',   label:'Sunscreen',             sub:'CeraVe Tinted SPF 30',     icon:'' },
-      ],
+      products: {
+        panoxyl:     { id:'am_panoxyl', label:'PanOxyl Foam Wash',    sub:'Benzoyl peroxide',     icon:'' },
+        gentle:      { id:'am_gentle', label:'Gentle Cleanser Wash', sub:'Gentle Cleanse',       icon:''},
+        rinse:       { id:'am_rinse',   label:'Water Rinse',           sub:'No cleanser',          icon:'' },
+        moisturizer: { id:'am_moist',   label:'Hydro Boost Water Gel', sub:'Moisturizer',          icon:'' },
+        spf:         { id:'am_spf',     label:'Sunscreen',             sub:'CeraVe Tinted SPF 30', icon:'' },
+      },
+      days: {
+        Sun: { panoxyl: false, rinse: true,  moisturizer: true, spf: true },
+        Mon: { panoxyl: false, rinse: true,  moisturizer: true, spf: true },
+        Tue: { panoxyl: false, rinse: true,  moisturizer: true, spf: true },
+        Wed: { panoxyl: false, rinse: true,  moisturizer: true, spf: true },
+        Thu: { panoxyl: false, rinse: true,  moisturizer: true, spf: true },
+        Fri: { panoxyl: false, rinse: true,  moisturizer: true, spf: true },
+        Sat: { panoxyl: false, rinse: true,  moisturizer: true, spf: true },
+      },
     },
     evening: {
-      // Cleanser comes first every night
-      cleanser: { id:'pm_cleanser', label:'PanOxyl 10% Foaming Wash', sub:'Benzoyl Peroxide Cleanser', icon:'' },
-      // Active treatments by day
-      differinDays: [1, 2, 3, 4, 5], // Mon–Fri
-      bhaDays:      [0],              // Sun
-      // (Sat=6 is recovery — no active)
-      differin: { id:'pm_differin', label:'Differin Adapalene Gel', sub:'0.1% Adapalene',           icon:'' },
-      bha:      { id:'pm_paulas',   label:'Exfoliate',              sub:"Paula's Choice BHA Liquid Exfoliant", icon:'' },
-      // Always last
-      moisturizer: { id:'pm_moist', label:'Hydro Boost Water Gel', sub:'Neutrogena — Moisturizer', icon:'' },
+      products: {
+        panoxyl:    { id:'pm_panoxyl', label:'PanOxyl 10% Foaming Wash',  sub:'Benzoyl Peroxide Cleanser',           icon:'' },
+        gentle:      { id:'am_gentle',   label:'Ultra Gentle Daily Cleanser',     sub:'Neutrogena Foaming Formula',  icon:''},
+        differin:    { id:'pm_differin', label:'Differin Adapalene Gel',     sub:'0.1% Adapalene',                     icon:'' },
+        bha:         { id:'pm_paulas',   label:'Exfoliate',                  sub:"Paula's Choice BHA Liquid Exfoliant", icon:'' },
+        moisturizer: { id:'pm_moist',    label:'Hydro Boost Water Gel',      sub:'Neutrogena — Moisturizer',            icon:'' },
+      },
+      days: {
+        Sun: { gentle: true, differin: false, bha: true,  moisturizer: true },
+        Mon: { panoxyl: true, differin: true,  bha: false, moisturizer: true },
+        Tue: { panoxyl: true, differin: true,  bha: false, moisturizer: true },
+        Wed: { gentle: true, differin: false,  bha: false, moisturizer: true },
+        Thu: { panoxyl: true, differin: true,  bha: false, moisturizer: true },
+        Fri: { panoxyl: true, differin: true,  bha: false, moisturizer: true },
+        Sat: { gentle: true, differin: false, bha: false, moisturizer: true },
+      },
     },
   },
 
@@ -795,24 +840,20 @@ function formatDate(dateStr) {
 }
 
 // ============ [ROUTINES] (built from CONFIG.routines) =======
+const _DOW_KEYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
 function getMorning(dow) {
   if (dow === undefined) dow = getDow(viewingDate);
   const r = CONFIG.routines.morning;
-  const items = [];
-  items.push(r.panoxylDays.includes(dow) ? r.panoxyl : r.rinse);
-  items.push(...r.always);
-  return items;
+  const day = r.days[_DOW_KEYS[dow]];
+  return Object.keys(r.products).filter(k => day[k]).map(k => r.products[k]);
 }
 
 function getEvening(dow) {
   if (dow === undefined) dow = getDow(viewingDate);
   const r = CONFIG.routines.evening;
-  const items = [r.cleanser];
-  if (r.differinDays.includes(dow))      items.push(r.differin);
-  else if (r.bhaDays.includes(dow))      items.push(r.bha);
-  // Recovery nights skip the active step
-  items.push(r.moisturizer);
-  return items;
+  const day = r.days[_DOW_KEYS[dow]];
+  return Object.keys(r.products).filter(k => day[k]).map(k => r.products[k]);
 }
 
 function getDayTag(dow) {
@@ -1007,6 +1048,7 @@ function initWeekSwipe() {
 
 // ============ [REPORT CARD] ============
 let reportOpen = false;
+let selectedReportStat = 'skin';
 
 function toggleReport() {
   reportOpen = !reportOpen;
@@ -1025,37 +1067,39 @@ function renderReport() {
   const week = getReportWeekDates();
   const today = getToday();
 
-  // Collect data from the week
+  // Collect per-day data for each stat
   let sleepTotal = 0, sleepCount = 0;
   let waterTotal = 0, waterCount = 0;
   let dailyPctSum = 0, dailyPctCount = 0;
   let skinValues = [];
   let daysLogged = 0;
-  const skinByDay = [];
-  week.forEach((ds, i) => {
-    if (ds > today) { skinByDay.push(null); return; }
-    const state = loadState(ds);
-    if (!state) { skinByDay.push(null); return; }
+  const skinByDay = [], sleepByDay = [], waterByDay = [], completionByDay = [];
 
+  week.forEach((ds, i) => {
+    if (ds > today) {
+      skinByDay.push(null); sleepByDay.push(null);
+      waterByDay.push(null); completionByDay.push(null);
+      return;
+    }
+    const state = loadState(ds);
+    if (!state) {
+      skinByDay.push(null); sleepByDay.push(null);
+      waterByDay.push(null); completionByDay.push(null);
+      return;
+    }
     const logged = isDayLogged(ds);
     if (logged) daysLogged++;
-
     if (state.sleep !== null) { sleepTotal += state.sleep; sleepCount++; }
-    if (state.water > 0) { waterTotal += state.water; waterCount++; }
-
-    // Routine % — only count days the user actually logged something,
-    // so empty/legacy records can't drag the weekly average down.
+    if (state.water > 0)     { waterTotal += state.water; waterCount++; }
     if (logged) {
-      dailyPctSum += calcProg(state, ds);
-      dailyPctCount++;
-    }
-
-    if (state.skinClarity !== null) {
-      skinValues.push(state.skinClarity);
-      skinByDay.push(state.skinClarity);
-    } else {
-      skinByDay.push(null);
-    }
+      const pct = calcProg(state, ds);
+      dailyPctSum += pct; dailyPctCount++;
+      completionByDay.push(pct);
+    } else { completionByDay.push(null); }
+    sleepByDay.push(state.sleep !== null ? state.sleep : null);
+    waterByDay.push(state.water > 0 ? state.water : null);
+    if (state.skinClarity !== null) { skinValues.push(state.skinClarity); skinByDay.push(state.skinClarity); }
+    else skinByDay.push(null);
   });
 
   if (daysLogged === 0) {
@@ -1068,68 +1112,98 @@ function renderReport() {
   const avgDailyPct = dailyPctCount > 0 ? Math.round(dailyPctSum / dailyPctCount) : 0;
   const avgSkin = skinValues.length > 0 ? (skinValues.reduce((a,b)=>a+b,0) / skinValues.length) : null;
 
-  // Skin Health trend — compare first half to second half of available data
+  // Skin trend
   const trendCfg = CONFIG.report.skinTrend;
-  let skinTrendText = trendCfg.none.text;
-  let skinTrendColor = trendCfg.none.color;
+  let skinTrendText = trendCfg.none.text, skinTrendColor = trendCfg.none.color;
   if (skinValues.length >= 2) {
     const mid = Math.floor(skinValues.length / 2);
-    const firstHalf = skinValues.slice(0, mid);
-    const secondHalf = skinValues.slice(mid);
-    const avg1 = firstHalf.reduce((a,b)=>a+b,0) / firstHalf.length;
-    const avg2 = secondHalf.reduce((a,b)=>a+b,0) / secondHalf.length;
+    const avg1 = skinValues.slice(0, mid).reduce((a,b)=>a+b,0) / mid;
+    const avg2 = skinValues.slice(mid).reduce((a,b)=>a+b,0) / (skinValues.length - mid);
     const diff = avg2 - avg1;
-    if (diff >  trendCfg.threshold) { skinTrendText = trendCfg.improving.text; skinTrendColor = trendCfg.improving.color; }
+    if (diff > trendCfg.threshold)       { skinTrendText = trendCfg.improving.text; skinTrendColor = trendCfg.improving.color; }
     else if (diff < -trendCfg.threshold) { skinTrendText = trendCfg.declining.text; skinTrendColor = trendCfg.declining.color; }
-    else { skinTrendText = trendCfg.steady.text; skinTrendColor = trendCfg.steady.color; }
+    else                                 { skinTrendText = trendCfg.steady.text;    skinTrendColor = trendCfg.steady.color; }
   }
 
   // Overall grade
-  let gradeScore = 0;
-  let gradeFactors = 0;
-  if (sleepCount > 0) { gradeScore += Math.min((parseFloat(avgSleep) / 8) * 100, 100); gradeFactors++; }
-  if (waterCount > 0) { gradeScore += Math.min((avgWater / WATER_GOAL) * 100, 100); gradeFactors++; }
-  if (dailyPctCount > 0) { gradeScore += avgDailyPct; gradeFactors++; }
-  if (avgSkin !== null) { gradeScore += (avgSkin / 10) * 100; gradeFactors++; }
-
+  let gradeScore = 0, gradeFactors = 0;
+  if (sleepCount > 0)     { gradeScore += Math.min((parseFloat(avgSleep) / 8) * 100, 100); gradeFactors++; }
+  if (waterCount > 0)     { gradeScore += Math.min((avgWater / WATER_GOAL) * 100, 100); gradeFactors++; }
+  if (dailyPctCount > 0)  { gradeScore += avgDailyPct; gradeFactors++; }
+  if (avgSkin !== null)   { gradeScore += (avgSkin / 10) * 100; gradeFactors++; }
   const overall = gradeFactors > 0 ? Math.round(gradeScore / gradeFactors) : 0;
   const grade = (CONFIG.report.grades.find(g => overall >= g.min) || CONFIG.report.grades[CONFIG.report.grades.length - 1]).letter;
   const gc = CONFIG.report.gradeColors;
   const gradeColor = overall >= 80 ? gc.good : overall >= 60 ? gc.mid : gc.bad;
 
-  // Build skin trend bars
-  const skinBarsHTML = skinByDay.map((val, i) => {
-    if (val === null) return `<div class="skin-trend-day" style="height:4px;background:var(--border);"><span class="day-label">${DAY_NAMES[i]}</span></div>`;
-    const h = Math.max(10, (val / 10) * 100);
-    const barColor = val >= 7 ? 'var(--green)' : val >= 4 ? 'var(--orange)' : 'var(--red)';
-    return `<div class="skin-trend-day" style="height:${h}%;background:${barColor};"><span class="day-label">${DAY_NAMES[i]}</span></div>`;
-  }).join('');
+  // Build bar chart HTML for whichever stat is selected
+  const emptyBar = (i) => `<div class="skin-trend-day" style="height:4px;background:var(--border);"><span class="day-label">${DAY_NAMES[i]}</span></div>`;
+  let barsHTML = '', trendTitle = '', trendRight = '';
 
+  if (selectedReportStat === 'sleep') {
+    trendTitle = 'Sleep Trend';
+    trendRight = `<span style="font-size:11px;color:var(--text-dim);">Goal: 7+ hrs</span>`;
+    barsHTML = sleepByDay.map((val, i) => {
+      if (val === null) return emptyBar(i);
+      const h = Math.min(Math.max(10, (val / 8) * 100), 100);
+      const c = val >= 7 ? 'var(--green)' : val >= 6 ? 'var(--orange)' : 'var(--red)';
+      return `<div class="skin-trend-day" style="height:${h}%;background:${c};"><span class="day-label">${DAY_NAMES[i]}</span></div>`;
+    }).join('');
+  } else if (selectedReportStat === 'water') {
+    trendTitle = 'Hydration Trend';
+    trendRight = `<span style="font-size:11px;color:var(--text-dim);">Goal: ${WATER_GOAL} oz</span>`;
+    barsHTML = waterByDay.map((val, i) => {
+      if (val === null) return emptyBar(i);
+      const h = Math.min(Math.max(10, (val / WATER_GOAL) * 100), 100);
+      const c = val >= WATER_GOAL ? 'var(--green)' : val >= WATER_GOAL * 0.5 ? 'var(--water)' : 'var(--orange)';
+      return `<div class="skin-trend-day" style="height:${h}%;background:${c};"><span class="day-label">${DAY_NAMES[i]}</span></div>`;
+    }).join('');
+  } else if (selectedReportStat === 'routine') {
+    trendTitle = 'Completion Trend';
+    trendRight = `<span style="font-size:11px;color:var(--text-dim);">Goal: 100%</span>`;
+    barsHTML = completionByDay.map((val, i) => {
+      if (val === null) return emptyBar(i);
+      const h = Math.max(10, val);
+      const c = val >= 80 ? 'var(--green)' : val >= 50 ? 'var(--orange)' : 'var(--red)';
+      return `<div class="skin-trend-day" style="height:${h}%;background:${c};"><span class="day-label">${DAY_NAMES[i]}</span></div>`;
+    }).join('');
+  } else {
+    trendTitle = 'Skin Clarity Trend';
+    trendRight = `<span style="font-size:12px;font-weight:700;color:${skinTrendColor};">${skinTrendText}</span>`;
+    barsHTML = skinByDay.map((val, i) => {
+      if (val === null) return emptyBar(i);
+      const h = Math.max(10, (val / 10) * 100);
+      const c = val >= 7 ? 'var(--green)' : val >= 4 ? 'var(--orange)' : 'var(--red)';
+      return `<div class="skin-trend-day" style="height:${h}%;background:${c};"><span class="day-label">${DAY_NAMES[i]}</span></div>`;
+    }).join('');
+  }
+
+  const sel = selectedReportStat;
   el.innerHTML = `
     <div class="report-stats">
-      <div class="report-stat sleep">
+      <div class="report-stat sleep${sel==='sleep'?' active':''}" onclick="selectReportStat('sleep')">
         <div class="stat-value">${avgSleep}<span style="font-size:13px;font-weight:500;"> hrs</span></div>
         <div class="stat-label">Avg Sleep</div>
       </div>
-      <div class="report-stat water">
+      <div class="report-stat water${sel==='water'?' active':''}" onclick="selectReportStat('water')">
         <div class="stat-value">${avgWater}<span style="font-size:13px;font-weight:500;"> oz</span></div>
         <div class="stat-label">Avg Water</div>
       </div>
-      <div class="report-stat routine">
+      <div class="report-stat routine${sel==='routine'?' active':''}" onclick="selectReportStat('routine')">
         <div class="stat-value">${avgDailyPct}%</div>
         <div class="stat-label">Avg Completion</div>
       </div>
-      <div class="report-stat skin">
+      <div class="report-stat skin${sel==='skin'?' active':''}" onclick="selectReportStat('skin')">
         <div class="stat-value">${avgSkin !== null ? avgSkin.toFixed(1) : '—'}<span style="font-size:13px;font-weight:500;">/10</span></div>
         <div class="stat-label">Avg Skin Clarity</div>
       </div>
     </div>
     <div class="skin-trend">
       <div style="display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-size:12px;font-weight:600;color:var(--text-dim);">Skin Clarity Trend</span>
-        <span style="font-size:12px;font-weight:700;color:${skinTrendColor};">${skinTrendText}</span>
+        <span style="font-size:12px;font-weight:600;color:var(--text-dim);">${trendTitle}</span>
+        ${trendRight}
       </div>
-      <div class="skin-trend-bar">${skinBarsHTML}</div>
+      <div class="skin-trend-bar">${barsHTML}</div>
       <div class="skin-trend-legend"><span>Sun</span><span>Sat</span></div>
     </div>
     <div class="report-grade">
@@ -1137,6 +1211,68 @@ function renderReport() {
       <div class="grade-label">Weekly Grade · ${daysLogged}/7 days logged</div>
     </div>
   `;
+}
+
+function selectReportStat(stat) {
+  selectedReportStat = stat;
+  renderReport();
+}
+
+// ============ [SKIN ANALYSIS] ============
+function renderSkinAnalysis() {
+  const el = document.getElementById('skinAnalysis');
+  if (!el) return;
+
+  if (S.skinClarity === null || S.skinClarity < 6) {
+    el.style.display = 'none';
+    return;
+  }
+
+  // Prior day's state (yesterday's habits caused today's good skin)
+  const [y, m, d] = viewingDate.split('-').map(Number);
+  const priorDs = toLocalDateStr(new Date(y, m - 1, d - 1));
+  const prior = loadState(priorDs);
+
+  const SL = CONFIG.sliderLabels;
+
+  function chip(label, val, type, colorFn) {
+    const text = (val !== null && type) ? SL[type][val] : (val !== null ? val : '—');
+    const color = (val !== null && colorFn) ? colorFn(val) : 'var(--text)';
+    return `<div class="analysis-chip"><span class="chip-label">${label}</span><span class="chip-val" style="color:${color};">${text}</span></div>`;
+  }
+
+  // Sleep chip (current day = last night)
+  const sleepColor = S.sleep !== null ? (S.sleep >= 7 ? 'var(--green)' : S.sleep >= 6 ? 'var(--orange)' : 'var(--red)') : 'var(--text)';
+  const sleepChip = `<div class="analysis-chip"><span class="chip-label">Sleep</span><span class="chip-val" style="color:${sleepColor};">${S.sleep !== null ? S.sleep + ' hrs' : '—'}</span></div>`;
+
+  // Yesterday's tracker chips
+  const dairyChip    = chip('Dairy',    prior?.dairy    ?? null, 'dairy',    v => v <= 2 ? 'var(--green)' : v <= 5 ? 'var(--orange)' : 'var(--red)');
+  const caffeineChip = chip('Caffeine', prior?.caffeine ?? null, 'caffeine', v => v <= 2 ? 'var(--green)' : v <= 5 ? 'var(--orange)' : 'var(--red)');
+  const alcoholChip  = chip('Alcohol',  prior?.alcohol  ?? null, 'alcohol',  v => v <= 1 ? 'var(--green)' : v <= 4 ? 'var(--orange)' : 'var(--red)');
+
+  let workoutColor = 'var(--text-dim)', workoutText = '—';
+  if (prior?.workout === true)  { workoutText = 'Yes ✅'; workoutColor = 'var(--green)'; }
+  else if (prior?.workout === false) { workoutText = 'No'; workoutColor = 'var(--text-dim)'; }
+  const workoutChip = `<div class="analysis-chip"><span class="chip-label">Workout</span><span class="chip-val" style="color:${workoutColor};">${workoutText}</span></div>`;
+
+  const skinLabel = SL.skinClarity[S.skinClarity];
+
+  el.style.display = 'block';
+  el.innerHTML = `<div class="analysis-card">
+    <div class="analysis-header">
+      <span class="analysis-title">✨ Skin Analysis</span>
+      <span class="analysis-score">${S.skinClarity}/10 · ${skinLabel}</span>
+    </div>
+    <div class="analysis-sub">Habits from the day before that likely helped:</div>
+    <div class="analysis-group">
+      <div class="analysis-group-label">Last Night's Sleep</div>
+      <div class="analysis-chips">${sleepChip}</div>
+    </div>
+    <div class="analysis-group">
+      <div class="analysis-group-label">Yesterday's Habits</div>
+      <div class="analysis-chips">${dairyChip}${caffeineChip}${alcoholChip}${workoutChip}</div>
+    </div>
+  </div>`;
 }
 
 // ============ [DAY SWITCHING] ============
@@ -1569,6 +1705,7 @@ function render() {
 
   // Re-render report if open
   if (reportOpen) renderReport();
+  renderSkinAnalysis();
 }
 
 // ============ [CELEBRATION] ============
