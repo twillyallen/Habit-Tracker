@@ -746,37 +746,34 @@ const CONFIG = {
   routines: {
     morning: {
       products: {
-        panoxyl:     { id:'am_panoxyl', label:'PanOxyl Foam Wash',    sub:'Benzoyl peroxide',     icon:'' },
-        gentle:      { id:'am_gentle', label:'Gentle Cleanser Wash', sub:'Gentle Cleanse',       icon:''},
-        rinse:       { id:'am_rinse',   label:'Water Rinse',           sub:'No cleanser',          icon:'' },
-        moisturizer: { id:'am_moist',   label:'Hydro Boost Water Gel', sub:'Moisturizer',          icon:'' },
-        spf:         { id:'am_spf',     label:'Sunscreen',             sub:'CeraVe Tinted SPF 30', icon:'' },
+        panoxyl:     { id:'am_panoxyl', label:'PanOxyl 10%',           sub:'Benzoyl Peroxide Wash', icon:'' },
+        moisturizer: { id:'am_moist',   label:'Hydro Boost Water Gel', sub:'Moisturizer',           icon:'' },
+        spf:         { id:'am_spf',     label:'Sunscreen',             sub:'CeraVe Tinted SPF 30',  icon:'' },
       },
       days: {
-        Sun: { panoxyl: false, rinse: true,  moisturizer: true, spf: true },
-        Mon: { panoxyl: false, rinse: true,  moisturizer: true, spf: true },
-        Tue: { panoxyl: false, rinse: true,  moisturizer: true, spf: true },
-        Wed: { panoxyl: false, rinse: true,  moisturizer: true, spf: true },
-        Thu: { panoxyl: false, rinse: true,  moisturizer: true, spf: true },
-        Fri: { panoxyl: false, rinse: true,  moisturizer: true, spf: true },
-        Sat: { panoxyl: false, rinse: true,  moisturizer: true, spf: true },
+        Sun: { panoxyl: false, moisturizer: false, spf: false },
+        Mon: { panoxyl: true,  moisturizer: true,  spf: true  },
+        Tue: { panoxyl: true,  moisturizer: true,  spf: true  },
+        Wed: { panoxyl: true,  moisturizer: true,  spf: true  },
+        Thu: { panoxyl: true,  moisturizer: true,  spf: true  },
+        Fri: { panoxyl: true,  moisturizer: true,  spf: true  },
+        Sat: { panoxyl: true,  moisturizer: true,  spf: true  },
       },
     },
     evening: {
       products: {
-        panoxyl:    { id:'pm_panoxyl', label:'PanOxyl 10% Foaming Wash',  sub:'Benzoyl Peroxide Cleanser',           icon:'' },
-        gentle:      { id:'am_gentle',   label:'Ultra Gentle Daily Cleanser',     sub:'Neutrogena Foaming Formula',  icon:''},
-        differin:    { id:'pm_differin', label:'Differin Adapalene Gel',     sub:'0.1% Adapalene',                     icon:'' },
-        bha:         { id:'pm_paulas',   label:'Exfoliate',                  sub:"Paula's Choice BHA Liquid Exfoliant", icon:'' },
-        moisturizer: { id:'pm_moist',    label:'Hydro Boost Water Gel',      sub:'Neutrogena — Moisturizer',            icon:'' },
+        gentle:      { id:'pm_gentle',   label:'Gentle Cleanser',            sub:'Face Wash',                          icon:''},
+        differin:    { id:'pm_differin', label:'Differin Adapalene Gel',      sub:'0.1% Adapalene',                     icon:'' },
+        bha:         { id:'pm_paulas',   label:'Paulas Choice BHA Exfoliant', sub:"Paula's Choice BHA Liquid Exfoliant", icon:'' },
+        moisturizer: { id:'pm_moist',    label:'CeraVe Moisturizing Cream',   sub:'Moisturizer',                        icon:'' },
       },
       days: {
         Sun: { gentle: true, differin: false, bha: true,  moisturizer: true },
-        Mon: { panoxyl: true, differin: true,  bha: false, moisturizer: true },
-        Tue: { panoxyl: true, differin: true,  bha: false, moisturizer: true },
-        Wed: { gentle: true, differin: false,  bha: false, moisturizer: true },
-        Thu: { panoxyl: true, differin: true,  bha: false, moisturizer: true },
-        Fri: { panoxyl: true, differin: true,  bha: false, moisturizer: true },
+        Mon: { gentle: true, differin: true,  bha: false, moisturizer: true },
+        Tue: { gentle: true, differin: true,  bha: false, moisturizer: true },
+        Wed: { gentle: true, differin: false, bha: true,  moisturizer: true },
+        Thu: { gentle: true, differin: true,  bha: false, moisturizer: true },
+        Fri: { gentle: true, differin: true,  bha: false, moisturizer: true },
         Sat: { gentle: true, differin: false, bha: false, moisturizer: true },
       },
     },
@@ -858,9 +855,9 @@ function getEvening(dow) {
 
 function getDayTag(dow) {
   const t = CONFIG.dayTags;
-  if (dow === 0)           return t.bhaNight;      // Sun = BHA
-  if (dow === 6)           return t.recoveryNight;  // Sat = Recovery
-  return t.differinNight;                           // Mon–Fri = Differin
+  if (dow === 0 || dow === 3) return t.bhaNight;      // Sun, Wed = BHA
+  if (dow === 6)              return t.recoveryNight;  // Sat = Recovery
+  return t.differinNight;                              // Mon, Tue, Thu, Fri = Differin
 }
 
 // ============ [STATE] — load/save/default ============
@@ -1752,15 +1749,13 @@ function scheduleReset() {
 function migrateOldData() {
   if (localStorage.getItem('ss_migrated_v3')) return;
   
-  // v3 migration: routine overhaul
-  // - Morning: all days now water rinse (no PanOxyl in AM)
-  // - Evening cleanser: now PanOxyl 10% (same id pm_cleanser, just renamed)
-  // - Differin: was [0,1,4] (Sun/Mon/Thu), now [1,2,3,4,5] (Mon–Fri)
-  // - BHA: was [3] (Wed), now [0] (Sun)
-  // - Moisturizer: was CeraVe, now Hydro Boost (same id pm_moist)
-  // Check IDs haven't changed so most data carries over naturally.
-  // Old differin checks on Sun(0)/Thu(4) that are now BHA/Differin days respectively
-  // are close enough to keep as-is.
+  // v4 migration: routine overhaul
+  // - Morning: PanOxyl 10% + Hydro Boost + Sunscreen Mon–Sat (Sun = rest day, no AM items)
+  // - Evening cleanser: Gentle Cleanser every night (replaces PanOxyl in PM)
+  // - Differin: Mon, Tue, Thu, Fri
+  // - BHA: Sun + Wed (was Sun only)
+  // - Moisturizer: CeraVe Moisturizing Cream every night (was Hydro Boost)
+  // - Evening gentle now uses id pm_gentle (was am_gentle)
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
     if (!key.startsWith('ss_20')) continue;
